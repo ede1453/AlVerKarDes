@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "store_slug": "amazon-de",
+      "product_title": "Apple MacBook Air M5 16GB 512GB",
+      "product_url": "https://www.amazon.de/example-macbook-air-m5",
+      "price": 899,
+      "currency": "EUR",
+      "original_price": 1199,
+      "shipping_price": 0,
+      "stock_status": "in_stock",
+      "brand": "Apple",
+      "sku": "AMZ-MBA-M5-16-512"
+    }
+  ]
+}

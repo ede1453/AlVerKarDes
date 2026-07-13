@@ -1,0 +1,19 @@
+def serialize_pipeline_result(result):
+    return {
+        "pipeline_id": result.pipeline_id,
+        "user_id": result.user_id,
+        "query": result.query,
+        "status": result.status,
+        "top_recommendation": result.top_recommendation,
+        "search": result.search,
+        "canonicalization": result.canonicalization,
+        "recommendation": result.recommendation,
+        "deal_detection": result.deal_detection,
+        "price_prediction": result.price_prediction,
+        "discount_intelligence": result.discount_intelligence,
+        "smart_alert": result.smart_alert,
+        "explanation": result.explanation,
+        "notification": result.notification,
+        "metadata": result.metadata,
+        "created_at": result.created_at.isoformat(),
+    }

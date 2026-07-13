@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "title": "Apple MacBook Air M5 16GB 512GB",
+      "url": "https://www.amazon.de/dp/B0M5AIR16512",
+      "price": "849,00 €",
+      "currency": "EUR",
+      "availability": "in_stock",
+      "brand": "Apple",
+      "asin": "B0M5AIR16512",
+      "confidence": 91
+    },
+    {
+      "title": "Apple MacBook Air M5 8GB 256GB",
+      "url": "https://www.amazon.de/dp/B0M5AIR8256",
+      "price": "729,00 €",
+      "currency": "EUR",
+      "availability": "in_stock",
+      "brand": "Apple",
+      "asin": "B0M5AIR8256",
+      "confidence": 88
+    }
+  ]
+}

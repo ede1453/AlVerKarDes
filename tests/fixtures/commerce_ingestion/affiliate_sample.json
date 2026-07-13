@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "id": "aff-001",
+      "title": "Samsung Galaxy S26 256GB",
+      "canonical_product_key": "samsung::galaxy-s26::256gb",
+      "url": "https://example.test/aff-001",
+      "price": 799,
+      "currency": "EUR",
+      "availability": "in_stock",
+      "observed_at": "2026-07-10T13:00:00+00:00"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+name: Production Release Candidate
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: aici
+          POSTGRES_PASSWORD: aici
+          POSTGRES_DB: aici
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aici -d aici"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: python scripts/check_openapi_uniqueness.py
+      - run: python scripts/check_release_artifacts.py
+      - run: docker build -f deploy/docker/Dockerfile.production -t aici:${{ github.sha }} .

@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".pytest_tmp", "tests/.pytest_tmp", "tests/pytest_tmp", "tests/runtime_tmp"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501", "B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_default_fixture_loop_scope = "function"
+addopts = ["-p", "no:cacheprovider"]
+norecursedirs = [".pytest_cache", ".pytest_tmp", "pytest_tmp", "tests/.pytest_tmp", "tests/pytest_tmp", "tests/runtime_tmp"]

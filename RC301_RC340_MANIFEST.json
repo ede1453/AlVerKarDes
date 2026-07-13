@@ -1,0 +1,18 @@
+{
+  "package": "AI Consumer Intelligence RC301-RC340 Production Launch",
+  "version": "1.1",
+  "rc_start": 301,
+  "rc_end": 340,
+  "contains": {
+    "production_code": true,
+    "router": true,
+    "individual_tests": 40,
+    "api_tests": 3,
+    "validation_script": true,
+    "docker": true,
+    "nginx": true,
+    "systemd": true,
+    "backup_restore_scripts": true,
+    "ci_workflow": true
+  }
+}

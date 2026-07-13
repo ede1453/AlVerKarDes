@@ -1,0 +1,15 @@
+[Unit]
+Description=AI Consumer Intelligence API
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/aici
+ExecStart=/usr/bin/docker compose -f deploy/docker/docker-compose.production.yml up -d
+ExecStop=/usr/bin/docker compose -f deploy/docker/docker-compose.production.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

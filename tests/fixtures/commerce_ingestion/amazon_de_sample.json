@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "external_offer_id": "amazon-001",
+      "product_title": "Apple MacBook Air M5 16GB 512GB",
+      "canonical_product_key": "apple::macbook-air::m5::16gb::512gb",
+      "product_url": "https://example.test/amazon-001",
+      "price": 1099,
+      "currency": "EUR",
+      "availability": "in_stock",
+      "observed_at": "2026-07-10T12:00:00+00:00"
+    },
+    {
+      "external_offer_id": "amazon-002",
+      "product_title": "Apple MacBook Air M5 16GB 512GB",
+      "canonical_product_key": "apple::macbook-air::m5::16gb::512gb",
+      "product_url": "https://example.test/amazon-002",
+      "price": 999,
+      "currency": "EUR",
+      "availability": "in_stock",
+      "observed_at": "2026-07-11T12:00:00+00:00"
+    }
+  ]
+}

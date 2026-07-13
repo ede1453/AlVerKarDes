@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: aici-db
+    environment:
+      POSTGRES_DB: aici
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - aici_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: aici-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  aici_pgdata:

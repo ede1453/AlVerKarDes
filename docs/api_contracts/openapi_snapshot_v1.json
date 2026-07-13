@@ -1,0 +1,1090 @@
+{
+  "path_count": 71,
+  "paths": {
+    "/api/v1/admin/import/upload": {
+      "post": {
+        "operationId": "upload_feed_api_v1_admin_import_upload_post",
+        "requestBody": [
+          "multipart/form-data"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Upload Feed",
+        "tags": [
+          "admin-import"
+        ]
+      }
+    },
+    "/api/v1/ai-decision-pipeline/run": {
+      "post": {
+        "operationId": "run_ai_decision_pipeline_api_v1_ai_decision_pipeline_run_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Run Ai Decision Pipeline",
+        "tags": [
+          "ai-decision-pipeline"
+        ]
+      }
+    },
+    "/api/v1/ai-shopping-assistant/advise": {
+      "post": {
+        "operationId": "advise_api_v1_ai_shopping_assistant_advise_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Advise",
+        "tags": [
+          "ai-shopping-assistant"
+        ]
+      }
+    },
+    "/api/v1/alerts/rules": {
+      "post": {
+        "operationId": "create_alert_rule_api_v1_alerts_rules_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Alert Rule",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/alerts/rules/offer/{offer_id}": {
+      "get": {
+        "operationId": "list_alert_rules_for_offer_api_v1_alerts_rules_offer__offer_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "List Alert Rules For Offer",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/alerts/rules/{rule_id}": {
+      "delete": {
+        "operationId": "delete_alert_rule_api_v1_alerts_rules__rule_id__delete",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Delete Alert Rule",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v1/application/grouped-search-recommend": {
+      "post": {
+        "operationId": "grouped_search_recommend_api_v1_application_grouped_search_recommend_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Grouped Search Recommend",
+        "tags": [
+          "application"
+        ]
+      }
+    },
+    "/api/v1/application/search-recommend": {
+      "post": {
+        "operationId": "search_recommend_api_v1_application_search_recommend_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Search Recommend",
+        "tags": [
+          "application"
+        ]
+      }
+    },
+    "/api/v1/connectors/ingest": {
+      "post": {
+        "operationId": "ingest_connector_results_api_v1_connectors_ingest_post",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Ingest Connector Results",
+        "tags": [
+          "connectors-ingestion"
+        ]
+      }
+    },
+    "/api/v1/connectors/search": {
+      "get": {
+        "operationId": "search_connectors_api_v1_connectors_search_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Search Connectors",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/consumer-intelligence/evaluate": {
+      "post": {
+        "operationId": "evaluate_consumer_intelligence_api_v1_consumer_intelligence_evaluate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Evaluate Consumer Intelligence",
+        "tags": [
+          "consumer-intelligence"
+        ]
+      }
+    },
+    "/api/v1/deals/offers/{offer_id}/summary": {
+      "get": {
+        "operationId": "build_offer_deal_summary_api_v1_deals_offers__offer_id__summary_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Build Offer Deal Summary",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/api/v1/deals/summary": {
+      "post": {
+        "operationId": "build_deal_summary_api_v1_deals_summary_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Build Deal Summary",
+        "tags": [
+          "deals"
+        ]
+      }
+    },
+    "/api/v1/decision-context/build": {
+      "post": {
+        "operationId": "build_decision_context_api_v1_decision_context_build_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Build Decision Context",
+        "tags": [
+          "decision-context"
+        ]
+      }
+    },
+    "/api/v1/decision-memory/store": {
+      "post": {
+        "operationId": "store_decision_memory_api_v1_decision_memory_store_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Store Decision Memory",
+        "tags": [
+          "decision-memory"
+        ]
+      }
+    },
+    "/api/v1/decision-memory/{decision_id}": {
+      "get": {
+        "operationId": "get_decision_memory_api_v1_decision_memory__decision_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get Decision Memory",
+        "tags": [
+          "decision-memory"
+        ]
+      }
+    },
+    "/api/v1/decision-memory/{decision_id}/outcome": {
+      "post": {
+        "operationId": "evaluate_decision_outcome_api_v1_decision_memory__decision_id__outcome_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Evaluate Decision Outcome",
+        "tags": [
+          "decision-memory"
+        ]
+      }
+    },
+    "/api/v1/explanations/generate": {
+      "post": {
+        "operationId": "generate_explanation_api_v1_explanations_generate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Generate Explanation",
+        "tags": [
+          "explanations"
+        ]
+      }
+    },
+    "/api/v1/external-connectors/ingest": {
+      "post": {
+        "operationId": "ingest_external_connectors_api_v1_external_connectors_ingest_post",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Ingest External Connectors",
+        "tags": [
+          "external-connectors"
+        ]
+      }
+    },
+    "/api/v1/external-connectors/search": {
+      "get": {
+        "operationId": "search_external_connectors_api_v1_external_connectors_search_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Search External Connectors",
+        "tags": [
+          "external-connectors"
+        ]
+      }
+    },
+    "/api/v1/external-connectors/sources": {
+      "get": {
+        "operationId": "list_external_connector_sources_api_v1_external_connectors_sources_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "List External Connector Sources",
+        "tags": [
+          "external-connectors"
+        ]
+      }
+    },
+    "/api/v1/feedback-learning/decisions/{decision_id}/summary": {
+      "get": {
+        "operationId": "summarize_decision_feedback_api_v1_feedback_learning_decisions__decision_id__summary_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Summarize Decision Feedback",
+        "tags": [
+          "feedback-learning"
+        ]
+      }
+    },
+    "/api/v1/feedback-learning/feedback": {
+      "post": {
+        "operationId": "submit_feedback_api_v1_feedback_learning_feedback_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Submit Feedback",
+        "tags": [
+          "feedback-learning"
+        ]
+      }
+    },
+    "/api/v1/feedback-learning/feedback/{feedback_id}": {
+      "get": {
+        "operationId": "get_feedback_api_v1_feedback_learning_feedback__feedback_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get Feedback",
+        "tags": [
+          "feedback-learning"
+        ]
+      }
+    },
+    "/api/v1/feedback-learning/users/{user_id}/summary": {
+      "get": {
+        "operationId": "summarize_user_feedback_api_v1_feedback_learning_users__user_id__summary_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Summarize User Feedback",
+        "tags": [
+          "feedback-learning"
+        ]
+      }
+    },
+    "/api/v1/identity/login": {
+      "post": {
+        "operationId": "login_api_v1_identity_login_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Login",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/api/v1/identity/me": {
+      "get": {
+        "operationId": "me_api_v1_identity_me_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Me",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/api/v1/identity/register": {
+      "post": {
+        "operationId": "register_api_v1_identity_register_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Register",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/api/v1/integrity/check": {
+      "get": {
+        "operationId": "check_integrity_api_v1_integrity_check_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Check Integrity",
+        "tags": [
+          "integrity"
+        ]
+      }
+    },
+    "/api/v1/integrity/duplicate-product-regression": {
+      "get": {
+        "operationId": "duplicate_product_regression_api_v1_integrity_duplicate_product_regression_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Duplicate Product Regression",
+        "tags": [
+          "integrity"
+        ]
+      }
+    },
+    "/api/v1/llm-audit-traces": {
+      "get": {
+        "operationId": "list_llm_audit_traces_api_v1_llm_audit_traces_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "List Llm Audit Traces",
+        "tags": [
+          "llm-audit-traces"
+        ]
+      },
+      "post": {
+        "operationId": "create_llm_audit_trace_api_v1_llm_audit_traces_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Create Llm Audit Trace",
+        "tags": [
+          "llm-audit-traces"
+        ]
+      }
+    },
+    "/api/v1/llm-audit-traces/{trace_id}": {
+      "get": {
+        "operationId": "get_llm_audit_trace_api_v1_llm_audit_traces__trace_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get Llm Audit Trace",
+        "tags": [
+          "llm-audit-traces"
+        ]
+      }
+    },
+    "/api/v1/llm-explanations/prepare": {
+      "post": {
+        "operationId": "prepare_llm_explanation_api_v1_llm_explanations_prepare_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Prepare Llm Explanation",
+        "tags": [
+          "llm-explanations"
+        ]
+      }
+    },
+    "/api/v1/llm-gateway/generate": {
+      "post": {
+        "operationId": "generate_with_llm_gateway_api_v1_llm_gateway_generate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Generate With Llm Gateway",
+        "tags": [
+          "llm-gateway"
+        ]
+      }
+    },
+    "/api/v1/llm-gateway/providers": {
+      "get": {
+        "operationId": "list_llm_gateway_providers_api_v1_llm_gateway_providers_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "List Llm Gateway Providers",
+        "tags": [
+          "llm-gateway"
+        ]
+      }
+    },
+    "/api/v1/llm-orchestration/run": {
+      "post": {
+        "operationId": "run_llm_orchestration_api_v1_llm_orchestration_run_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Run Llm Orchestration",
+        "tags": [
+          "llm-orchestration"
+        ]
+      }
+    },
+    "/api/v1/llm-orchestration/run-intelligent": {
+      "post": {
+        "operationId": "run_intelligent_llm_orchestration_api_v1_llm_orchestration_run_intelligent_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Run Intelligent Llm Orchestration",
+        "tags": [
+          "llm-orchestration"
+        ]
+      }
+    },
+    "/api/v1/llm-orchestration/run-with-audit": {
+      "post": {
+        "operationId": "run_llm_orchestration_with_audit_api_v1_llm_orchestration_run_with_audit_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Run Llm Orchestration With Audit",
+        "tags": [
+          "llm-orchestration"
+        ]
+      }
+    },
+    "/api/v1/llm-provider-health/check": {
+      "post": {
+        "operationId": "check_provider_health_api_v1_llm_provider_health_check_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Check Provider Health",
+        "tags": [
+          "llm-provider-health"
+        ]
+      }
+    },
+    "/api/v1/llm-provider-health/summary": {
+      "get": {
+        "operationId": "get_provider_health_summary_api_v1_llm_provider_health_summary_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Get Provider Health Summary",
+        "tags": [
+          "llm-provider-health"
+        ]
+      }
+    },
+    "/api/v1/llm-provider-selection/select": {
+      "post": {
+        "operationId": "select_provider_api_v1_llm_provider_selection_select_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Select Provider",
+        "tags": [
+          "llm-provider-selection"
+        ]
+      }
+    },
+    "/api/v1/llm-streaming/preview": {
+      "post": {
+        "operationId": "preview_stream_api_v1_llm_streaming_preview_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Preview Stream",
+        "tags": [
+          "llm-streaming"
+        ]
+      }
+    },
+    "/api/v1/llm-streaming/sse": {
+      "post": {
+        "operationId": "stream_sse_api_v1_llm_streaming_sse_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Stream Sse",
+        "tags": [
+          "llm-streaming"
+        ]
+      }
+    },
+    "/api/v1/market/connectors/import": {
+      "post": {
+        "operationId": "import_feed_api_v1_market_connectors_import_post",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Import Feed",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/market/offers": {
+      "post": {
+        "operationId": "create_offer_api_v1_market_offers_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Offer",
+        "tags": [
+          "market"
+        ]
+      }
+    },
+    "/api/v1/market/prices": {
+      "post": {
+        "operationId": "save_price_api_v1_market_prices_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Save Price",
+        "tags": [
+          "market"
+        ]
+      }
+    },
+    "/api/v1/market/stores": {
+      "post": {
+        "operationId": "create_store_api_v1_market_stores_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Store",
+        "tags": [
+          "market"
+        ]
+      }
+    },
+    "/api/v1/personalized-intelligence/decisions/personalize": {
+      "post": {
+        "operationId": "personalize_decision_api_v1_personalized_intelligence_decisions_personalize_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Personalize Decision",
+        "tags": [
+          "personalized-intelligence"
+        ]
+      }
+    },
+    "/api/v1/personalized-intelligence/profiles": {
+      "post": {
+        "operationId": "save_user_preference_profile_api_v1_personalized_intelligence_profiles_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Save User Preference Profile",
+        "tags": [
+          "personalized-intelligence"
+        ]
+      }
+    },
+    "/api/v1/personalized-intelligence/profiles/{user_id}": {
+      "get": {
+        "operationId": "get_user_preference_profile_api_v1_personalized_intelligence_profiles__user_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get User Preference Profile",
+        "tags": [
+          "personalized-intelligence"
+        ]
+      }
+    },
+    "/api/v1/products/": {
+      "post": {
+        "operationId": "create_product_api_v1_products__post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Product",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/products/brands": {
+      "post": {
+        "operationId": "create_brand_api_v1_products_brands_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Brand",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/products/categories": {
+      "post": {
+        "operationId": "create_category_api_v1_products_categories_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Category",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/products/cleanup/orphans": {
+      "post": {
+        "operationId": "cleanup_orphan_products_api_v1_products_cleanup_orphans_post",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Cleanup Orphan Products",
+        "tags": [
+          "products-cleanup"
+        ]
+      }
+    },
+    "/api/v1/products/from-name": {
+      "post": {
+        "operationId": "create_product_from_name_api_v1_products_from_name_post",
+        "requestBody": null,
+        "responses": [
+          "201",
+          "422"
+        ],
+        "summary": "Create Product From Name",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/products/intelligence/merge-candidates": {
+      "post": {
+        "operationId": "build_merge_candidates_api_v1_products_intelligence_merge_candidates_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Build Merge Candidates",
+        "tags": [
+          "products-intelligence"
+        ]
+      }
+    },
+    "/api/v1/products/intelligence/merge-candidates/persist": {
+      "post": {
+        "operationId": "persist_merge_candidates_api_v1_products_intelligence_merge_candidates_persist_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Persist Merge Candidates",
+        "tags": [
+          "products-intelligence"
+        ]
+      }
+    },
+    "/api/v1/products/intelligence/merge-candidates/{candidate_id}/apply": {
+      "post": {
+        "operationId": "apply_merge_candidate_api_v1_products_intelligence_merge_candidates__candidate_id__apply_post",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Apply Merge Candidate",
+        "tags": [
+          "products-intelligence"
+        ]
+      }
+    },
+    "/api/v1/products/intelligence/merge-candidates/{candidate_id}/review": {
+      "patch": {
+        "operationId": "review_merge_candidate_api_v1_products_intelligence_merge_candidates__candidate_id__review_patch",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Review Merge Candidate",
+        "tags": [
+          "products-intelligence"
+        ]
+      }
+    },
+    "/api/v1/products/merge/apply": {
+      "post": {
+        "operationId": "apply_merge_plan_api_v1_products_merge_apply_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Apply Merge Plan",
+        "tags": [
+          "products-merge"
+        ]
+      }
+    },
+    "/api/v1/products/merge/verify": {
+      "post": {
+        "operationId": "verify_merge_api_v1_products_merge_verify_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Verify Merge",
+        "tags": [
+          "products-merge"
+        ]
+      }
+    },
+    "/api/v1/products/search": {
+      "get": {
+        "operationId": "search_products_api_v1_products_search_get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Search Products",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/recommendations/analyze": {
+      "post": {
+        "operationId": "analyze_product_api_v1_recommendations_analyze_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Analyze Product",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/api/v1/recommendations/evaluate": {
+      "post": {
+        "operationId": "evaluate_api_v1_recommendations_evaluate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Evaluate",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/api/v1/recommendations/intelligence/evaluate": {
+      "post": {
+        "operationId": "evaluate_recommendation_intelligence_api_v1_recommendations_intelligence_evaluate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Evaluate Recommendation Intelligence",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/api/v1/recommendations/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_session_recommendations_api_v1_recommendations_sessions__session_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get Session Recommendations",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/api/v1/system/release-health": {
+      "get": {
+        "operationId": "release_health_api_v1_system_release_health_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Release Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/trust-intelligence/evaluate": {
+      "post": {
+        "operationId": "evaluate_trust_api_v1_trust_intelligence_evaluate_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Evaluate Trust",
+        "tags": [
+          "trust-intelligence"
+        ]
+      }
+    },
+    "/api/v1/trust-intelligence/profiles/{entity_type}/{entity_id}": {
+      "get": {
+        "operationId": "get_trust_profile_api_v1_trust_intelligence_profiles__entity_type___entity_id__get",
+        "requestBody": null,
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Get Trust Profile",
+        "tags": [
+          "trust-intelligence"
+        ]
+      }
+    },
+    "/api/v1/trust-intelligence/signals": {
+      "post": {
+        "operationId": "upsert_trust_signal_api_v1_trust_intelligence_signals_post",
+        "requestBody": [
+          "application/json"
+        ],
+        "responses": [
+          "200",
+          "422"
+        ],
+        "summary": "Upsert Trust Signal",
+        "tags": [
+          "trust-intelligence"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "requestBody": null,
+        "responses": [
+          "200"
+        ],
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "version": "v1"
+}

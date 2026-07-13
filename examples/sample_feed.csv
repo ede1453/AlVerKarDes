@@ -1,0 +1,3 @@
+store_slug,product_title,product_url,price,currency,original_price,shipping_price,stock_status,brand,gtin,sku
+amazon-de,Apple MacBook Air M5 16GB 512GB,https://www.amazon.de/example-macbook-air-m5,899,EUR,1199,0,in_stock,Apple,,AMZ-MBA-M5-16-512
+mediamarkt-de,Sony WH-1000XM7 Black,https://www.mediamarkt.de/example-sony-xm7,299,EUR,399,0,in_stock,Sony,,MM-XM7-BLK

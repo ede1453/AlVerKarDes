@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "title": "Apple MacBook Air M5 16 GB 512 GB",
+      "url": "https://www.mediamarkt.de/de/product/_apple-macbook-air-m5-16-512.html",
+      "price": "879,00 €",
+      "currency": "EUR",
+      "availability": "in_stock",
+      "brand": "Apple",
+      "sku": "MM-MBA-M5-16-512",
+      "confidence": 87
+    },
+    {
+      "title": "Apple MacBook Air M5 8 GB 256 GB",
+      "url": "https://www.mediamarkt.de/de/product/_apple-macbook-air-m5-8-256.html",
+      "price": "749,00 €",
+      "currency": "EUR",
+      "availability": "in_stock",
+      "brand": "Apple",
+      "sku": "MM-MBA-M5-8-256",
+      "confidence": 84
+    }
+  ]
+}

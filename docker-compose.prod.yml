@@ -1,0 +1,53 @@
+services:
+  aici-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aici-api-prod
+    env_file:
+      - .env.prod
+    ports:
+      - "8000:8000"
+    depends_on:
+      aici-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  aici-db:
+    image: postgres:16
+    container_name: aici-db-prod
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: aici
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5433:5432"
+    volumes:
+      - aici_postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aici"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: aici-redis-prod
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - aici_redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  aici_postgres_prod_data:
+  aici_redis_prod_data:
