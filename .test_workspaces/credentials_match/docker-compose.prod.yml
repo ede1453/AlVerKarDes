@@ -1,0 +1,12 @@
+
+services:
+  aici-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aici
+  aici-api:
+    image: app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password@aici-db:5432/aici

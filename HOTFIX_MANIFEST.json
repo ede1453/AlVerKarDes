@@ -1,14 +1,10 @@
 {
-  "package": "RC301-RC340 Production Launch Hotfix",
+  "package": "AI Consumer Intelligence v1.0.0 Final Release Hotfix",
   "version": "1.3",
   "fixes": [
-    "asyncpg DATABASE_URL",
-    "configurable isolated API port 18000",
-    "PowerShell native fail-fast checks",
-    "no-cache API image rebuild",
-    "asyncpg import preflight",
-    "container state verification",
-    "isolated smoke test",
-    "compose env on down"
+    "replace stale v1.1 contract test",
+    "PowerShell 5.1 compatible release validation script",
+    "PowerShell 5.1 compatible Git tag script",
+    "PowerShell parser validation helper"
   ]
 }

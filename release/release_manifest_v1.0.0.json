@@ -1,0 +1,9 @@
+{
+  "version": "v1.0.0",
+  "commit_sha": "ceabb7ad0edff11de5c6b0025f500ec4702a5a09",
+  "source_digest_sha256": "044575a92191aea08fc4d121e757394f84b616dcf6a67b34903cade0b2d61339",
+  "generated_at": "2026-07-13T20:09:22.834439+00:00",
+  "release_status": "RELEASE_CANDIDATE_APPROVED",
+  "production_port": 18000,
+  "alembic_head": "0014_deal_storage_sqlalchemy"
+}
