@@ -75,12 +75,29 @@ def _fixture_transport(
 
 
 def build_amazon_connector() -> AmazonCreatorsConnectorService:
-    fixture_mode = (
+    explicit_fixture_mode = (
         os.getenv(
             "AMAZON_CREATORS_FIXTURE_MODE",
             "false",
         ).lower()
         == "true"
+    )
+
+    partner_tag = os.getenv("AMAZON_CREATORS_PARTNER_TAG", "")
+    client_id = os.getenv("AMAZON_CREATORS_CLIENT_ID", "")
+    client_secret = os.getenv("AMAZON_CREATORS_CLIENT_SECRET", "")
+
+    # CONNECT-004 (Amazon deferred to VISION-0xx, Amazon Associates'
+    # 10-sale/30-day requirement -- see ADR-003 Sonuc Raporu): without real
+    # credentials, calling search/collect used to raise an unhandled
+    # AmazonConnectorError (TOKEN_FETCHER_NOT_CONFIGURED), surfacing as a
+    # bare 500 -- confirmed live, not the "silently stays in fixture mode"
+    # behavior this connector is meant to have while parked. Auto-fall back
+    # to fixture mode whenever any required credential is missing, in
+    # addition to the explicit env var, so an uncredentialed deployment
+    # degrades to clearly-marked test data instead of crashing.
+    fixture_mode = explicit_fixture_mode or not (
+        partner_tag and client_id and client_secret
     )
 
     config = AmazonCreatorsConfig(
@@ -92,18 +109,9 @@ def build_amazon_connector() -> AmazonCreatorsConnectorService:
             "AMAZON_CREATORS_MARKETPLACE",
             "amazon.de",
         ),
-        partner_tag=os.getenv(
-            "AMAZON_CREATORS_PARTNER_TAG",
-            "",
-        ),
-        client_id=os.getenv(
-            "AMAZON_CREATORS_CLIENT_ID",
-            "",
-        ),
-        client_secret=os.getenv(
-            "AMAZON_CREATORS_CLIENT_SECRET",
-            "",
-        ),
+        partner_tag=partner_tag,
+        client_id=client_id,
+        client_secret=client_secret,
         timeout_seconds=float(
             os.getenv(
                 "AMAZON_CREATORS_TIMEOUT_SECONDS",

@@ -362,6 +362,11 @@ class AmazonCreatorsConnectorService:
 
         return {
             "source": "amazon",
+            # CONNECT-004 (Amazon deferred to VISION-0xx -- see ADR-003
+            # Sonuc Raporu): every product/offer/snapshot this connector
+            # produces is explicitly tagged so no consumer can mistake
+            # test-fixture data for a real Amazon listing.
+            "is_real_data": not self.config.fixture_mode,
             "marketplace": self.config.marketplace,
             "external_id": identifier,
             "asin": identifier,
@@ -406,6 +411,7 @@ class AmazonCreatorsConnectorService:
 
         return {
             "source": "amazon",
+            "is_real_data": not self.config.fixture_mode,
             "marketplace": self.config.marketplace,
             "external_product_id": product.get(
                 "external_id"
@@ -749,6 +755,7 @@ class AmazonCreatorsConnectorService:
                     {
                         "snapshot_id": str(uuid4()),
                         "source": "amazon",
+                        "is_real_data": not self.config.fixture_mode,
                         "external_product_id": (
                             product.get("external_id")
                         ),
@@ -832,6 +839,7 @@ class AmazonCreatorsConnectorService:
             records.append(
                 {
                     "source": "amazon",
+                    "is_real_data": not self.config.fixture_mode,
                     "marketplace": self.config.marketplace,
                     "external_id": product.get(
                         "external_id"
@@ -917,6 +925,7 @@ class AmazonCreatorsConnectorService:
         return {
             "executed": True,
             "connector": "amazon-creators-api",
+            "is_real_data": not self.config.fixture_mode,
             "started_at": started_at,
             "completed_at": now_iso(),
             "item_count": deduplicated[
