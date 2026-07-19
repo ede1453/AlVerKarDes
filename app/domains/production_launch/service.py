@@ -469,27 +469,6 @@ class ProductionLaunchService:
             ),
         }
 
-    # RC320
-    def evaluate_authorization(
-        self,
-        *,
-        user_roles: list[str],
-        required_roles: list[str],
-    ) -> dict[str, Any]:
-        granted = bool(
-            set(user_roles).intersection(
-                required_roles
-            )
-        )
-        return {
-            "granted": granted,
-            "reason": (
-                "AUTHORIZED"
-                if granted
-                else "FORBIDDEN"
-            ),
-        }
-
     # RC321
     def validate_cors(
         self,
