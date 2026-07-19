@@ -474,15 +474,31 @@ class NotificationOutboxService:
             },
         }
 
+    def get_notification(self, notification_id: str):
+        return self.repository.get(notification_id)
+
     def snooze_notification(
         self,
         notification_id: str,
         until: str,
     ) -> dict:
+        item = self.repository.get(notification_id)
+
+        if item is None:
+            return {
+                "snoozed": False,
+                "error": "NOT_FOUND",
+                "metadata": {"snooze_version": "notification_snooze_v1"},
+            }
+
+        item.snooze(until)
+        saved = self.repository.update(item)
+
         return {
-            "notification_id": notification_id,
-            "snoozed_until": until,
-            "status": "SNOOZED",
+            "snoozed": True,
+            "notification_id": saved.id,
+            "snoozed_until": saved.snoozed_until,
+            "status": saved.status,
             "metadata": {
                 "snooze_version": "notification_snooze_v1"
             },

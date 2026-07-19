@@ -8,6 +8,7 @@ class DecisionMemoryEngine:
     def create_record(self, payload: dict):
         return create_decision_memory_record(
             DecisionMemoryCreate(
+                user_id=payload.get("user_id"),
                 product_id=payload.get("product_id"),
                 offer_id=payload.get("offer_id"),
                 country=payload.get("country", "DE"),

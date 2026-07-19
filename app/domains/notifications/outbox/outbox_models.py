@@ -26,8 +26,13 @@ class NotificationOutboxItem:
     last_error: str | None = None
     provider: str = "mock"
     idempotency_key: str | None = None
+    snoozed_until: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def snooze(self, until: str) -> None:
+        self.snoozed_until = until
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_processing(self) -> None:
         self.status = PROCESSING
@@ -70,6 +75,7 @@ class NotificationOutboxItem:
             "last_error": self.last_error,
             "provider": self.provider,
             "idempotency_key": self.idempotency_key,
+            "snoozed_until": self.snoozed_until,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

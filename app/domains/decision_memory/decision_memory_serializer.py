@@ -1,6 +1,7 @@
 def serialize_decision_memory(record):
     return {
         "id": record.id,
+        "user_id": record.user_id,
         "product_id": record.product_id,
         "offer_id": record.offer_id,
         "country": record.country,

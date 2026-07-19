@@ -1,4 +1,16 @@
+from uuid import UUID
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.domains.decision_memory.db_models import DecisionMemoryModel
+from app.domains.decision_memory.decision_memory_models import DecisionMemoryRecord
+
+
 class InMemoryDecisionMemoryRepository:
+    """Plain in-memory test double. Not used by the API anymore (see
+    DecisionMemoryRepository below) -- kept for unit tests that want a
+    repository without a real database."""
+
     def __init__(self):
         self.records = {}
 
@@ -18,15 +30,87 @@ class InMemoryDecisionMemoryRepository:
         return record
 
 
-class DecisionMemoryRepository(InMemoryDecisionMemoryRepository):
-    """
-    Compatibility repository.
+def _to_record(row: DecisionMemoryModel) -> DecisionMemoryRecord:
+    return DecisionMemoryRecord(
+        id=str(row.id),
+        user_id=str(row.user_id) if row.user_id is not None else None,
+        product_id=row.product_id,
+        offer_id=row.offer_id,
+        country=row.country,
+        final_decision=row.final_decision,
+        confidence=row.confidence,
+        risk_level=row.risk_level,
+        opportunity_level=row.opportunity_level,
+        deal_score=row.deal_score,
+        authenticity_score=row.authenticity_score,
+        recommendation=row.recommendation,
+        reason_codes=list(row.reason_codes or []),
+        decision_context=dict(row.decision_context or {}),
+        generated_at=row.generated_at,
+        outcome=row.outcome,
+    )
 
-    This initial RC uses an in-memory implementation for tests and API contract.
-    A DB-backed implementation can later replace this class without changing
-    service/API contracts.
+
+class DecisionMemoryRepository:
+    """Postgres-backed repository (AUTH-006 Part 2, ADR-005).
+
+    Before this, the class of this same name silently extended
+    InMemoryDecisionMemoryRepository and never touched the database at all,
+    even though migration 0005 had already created a real `decision_memory`
+    table -- the table was pure dead schema. This version actually reads
+    from and writes to it. There is no in-memory fallback; a real
+    AsyncSession is required.
     """
 
-    def __init__(self, db=None):
-        super().__init__()
+    def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def save(self, record: DecisionMemoryRecord) -> DecisionMemoryRecord:
+        row = DecisionMemoryModel(
+            id=UUID(record.id),
+            user_id=UUID(record.user_id) if record.user_id else None,
+            product_id=record.product_id,
+            offer_id=record.offer_id,
+            country=record.country,
+            final_decision=record.final_decision,
+            confidence=record.confidence,
+            risk_level=record.risk_level,
+            opportunity_level=record.opportunity_level,
+            deal_score=record.deal_score,
+            authenticity_score=record.authenticity_score,
+            recommendation=record.recommendation,
+            reason_codes=list(record.reason_codes),
+            decision_context=dict(record.decision_context),
+            outcome=record.outcome,
+            generated_at=record.generated_at,
+        )
+        self.db.add(row)
+        await self.db.commit()
+        await self.db.refresh(row)
+        return _to_record(row)
+
+    async def get(self, decision_id: str) -> DecisionMemoryRecord | None:
+        try:
+            key = UUID(decision_id)
+        except ValueError:
+            return None
+
+        row = await self.db.get(DecisionMemoryModel, key)
+        if row is None:
+            return None
+        return _to_record(row)
+
+    async def update_outcome(self, decision_id: str, outcome: dict) -> DecisionMemoryRecord | None:
+        try:
+            key = UUID(decision_id)
+        except ValueError:
+            return None
+
+        row = await self.db.get(DecisionMemoryModel, key)
+        if row is None:
+            return None
+
+        row.outcome = outcome
+        await self.db.commit()
+        await self.db.refresh(row)
+        return _to_record(row)

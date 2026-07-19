@@ -5,6 +5,7 @@ from uuid import uuid4
 
 @dataclass
 class DecisionMemoryCreate:
+    user_id: str | None = None
     product_id: str | None = None
     offer_id: str | None = None
     country: str = "DE"
@@ -22,6 +23,7 @@ class DecisionMemoryCreate:
 @dataclass
 class DecisionMemoryRecord:
     id: str
+    user_id: str | None
     product_id: str | None
     offer_id: str | None
     country: str
@@ -41,6 +43,7 @@ class DecisionMemoryRecord:
 def create_decision_memory_record(data: DecisionMemoryCreate) -> DecisionMemoryRecord:
     return DecisionMemoryRecord(
         id=str(uuid4()),
+        user_id=data.user_id,
         product_id=data.product_id,
         offer_id=data.offer_id,
         country=data.country,
