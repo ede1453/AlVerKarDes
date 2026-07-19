@@ -5,35 +5,17 @@ from app.core.database import get_db
 from app.core.internal_service_auth import require_internal_service_key
 from app.domains.connectors.ingestion_service import ConnectorIngestionService
 from app.domains.connectors.manager import ConnectorManager
-from app.domains.connectors.manual_connector import ManualConnector
-from app.domains.connectors.sdk import ConnectorProductResult
+from app.domains.connectors.marketplace_adapters import build_live_connectors
 
 router = APIRouter(prefix="/connectors", tags=["connectors-ingestion"])
 
 
-def build_demo_manager() -> ConnectorManager:
-    return ConnectorManager([
-        ManualConnector([
-            ConnectorProductResult(
-                source="mock-amazon-de",
-                title="Apple MacBook Air M5 16GB 512GB",
-                url="https://example.com/amazon/macbook-air-m5-16-512",
-                price=849,
-                currency="EUR",
-                availability="in_stock",
-                confidence=95,
-            ),
-            ConnectorProductResult(
-                source="mock-mediamarkt-de",
-                title="Apple MBA M5 16 GB 512 GB",
-                url="https://example.com/mediamarkt/mba-m5-16-512",
-                price=879,
-                currency="EUR",
-                availability="in_stock",
-                confidence=90,
-            ),
-        ])
-    ])
+def build_live_manager() -> ConnectorManager:
+    # PARÇA B (bkz. ADR-007): Amazon/eBay/Idealo'nun TEK paylaşılan
+    # ingestion yolu -- her connector kendi özel bir DB yazma yolu
+    # açmıyor, hepsi aynı ConnectorManager/ConnectorIngestionService
+    # zincirinden market.Price'a yazıyor.
+    return ConnectorManager(build_live_connectors())
 
 
 @router.post("/ingest")
@@ -44,7 +26,7 @@ async def ingest_connector_results(
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    service = ConnectorIngestionService(db=db, manager=build_demo_manager())
+    service = ConnectorIngestionService(db=db, manager=build_live_manager())
     result = await service.search_and_ingest(query=query, country=country)
     return {
         "query": result.query,

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.domains.application.search_recommend_service import SearchRecommendService
-from app.domains.connectors.ingestion_router import build_demo_manager
+from app.domains.connectors.ingestion_router import build_live_manager
 
 router = APIRouter(prefix="/application", tags=["application"])
 
@@ -17,7 +17,7 @@ class SearchRecommendRequest(BaseModel):
 
 @router.post("/search-recommend")
 async def search_recommend(payload: SearchRecommendRequest, db: AsyncSession = Depends(get_db)):
-    service = SearchRecommendService(db=db, manager=build_demo_manager())
+    service = SearchRecommendService(db=db, manager=build_live_manager())
     result = await service.run(
         query=payload.query,
         country=payload.country,

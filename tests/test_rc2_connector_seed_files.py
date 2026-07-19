@@ -15,8 +15,7 @@ def test_seed_demo_connectors_hits_ingest_endpoint():
     content = Path("scripts/seed_demo_connectors.ps1").read_text(encoding="utf-8")
 
     assert "/api/v1/connectors/ingest" in content
-    assert "M5" in content
-    assert "Apple MacBook" in content
+    assert "Example Laptop" in content
 
 
 def test_inspect_prod_data_queries_core_tables():

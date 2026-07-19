@@ -16,6 +16,7 @@ class ConnectorProductResult:
     sku: str | None = None
     raw: dict[str, Any] | None = None
     confidence: float = 0.0
+    is_real_data: bool = True
 
 
 class StoreConnector(ABC):

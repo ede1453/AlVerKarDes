@@ -25,6 +25,7 @@ class UnifiedOffer:
     match_basis: list[str] = field(default_factory=list)
     match_group_id: str | None = None
     match_group_score: float | None = None
+    is_real_data: bool = True
 
 
 @dataclass
@@ -103,6 +104,7 @@ class ConnectorManager:
             overall_confidence=overall,
             raw=item.raw,
             match_basis=canonical.match_basis,
+            is_real_data=item.is_real_data,
         )
 
     def _assign_match_groups(self, offers: list[UnifiedOffer], country: str = "DE") -> list[UnifiedOffer]:

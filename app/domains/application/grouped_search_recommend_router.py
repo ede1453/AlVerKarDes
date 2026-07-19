@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.domains.application.grouped_search_recommend_service import GroupedSearchRecommendService
-from app.domains.connectors.ingestion_router import build_demo_manager
+from app.domains.connectors.ingestion_router import build_live_manager
 
 router = APIRouter(prefix="/application", tags=["application"])
 
@@ -17,7 +17,7 @@ class GroupedSearchRecommendRequest(BaseModel):
 
 @router.post("/grouped-search-recommend")
 async def grouped_search_recommend(payload: GroupedSearchRecommendRequest, db: AsyncSession = Depends(get_db)):
-    result = await GroupedSearchRecommendService(db=db, manager=build_demo_manager()).run(
+    result = await GroupedSearchRecommendService(db=db, manager=build_live_manager()).run(
         query=payload.query,
         country=payload.country,
         user_context=payload.user_context,

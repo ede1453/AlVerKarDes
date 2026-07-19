@@ -66,5 +66,5 @@ class MarketService:
     async def get_price_points_for_offer(self, offer_id, limit: int | None = None):
         return await self.get_price_history(offer_id, limit=limit)
 
-    async def get_price_history_for_product(self, product_id, limit: int | None = None):
-        return await self.price_repo.list_for_product(product_id, limit=limit)
+    async def get_price_history_for_product(self, product_id, limit: int | None = None, only_real: bool = True):
+        return await self.price_repo.list_for_product(product_id, limit=limit, only_real=only_real)

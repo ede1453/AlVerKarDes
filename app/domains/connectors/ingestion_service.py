@@ -26,6 +26,7 @@ class IngestedOfferResult:
     price_created: bool | None = None
     price_dedup_reason: str | None = None
     price_change: dict | None = None
+    is_real_data: bool | None = None
 
 
 @dataclass
@@ -171,6 +172,7 @@ class ConnectorIngestionService:
                     currency=offer.currency,
                     stock_status=offer.availability,
                     source=f"connector:{offer.source}",
+                    is_real_data=offer.is_real_data,
                 )
             )
 
@@ -188,6 +190,7 @@ class ConnectorIngestionService:
                 price_created=getattr(price, "_price_created", True),
                 price_dedup_reason=getattr(price, "_price_dedup_reason", None),
                 price_change=self._serialize_price_change(price),
+                is_real_data=offer.is_real_data,
             )
         except Exception as exc:
             await self.db.rollback()

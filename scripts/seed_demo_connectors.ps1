@@ -2,7 +2,10 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "=== Seed demo connector data ==="
 
-$queries = @("M5", "Apple MacBook", "Sony WH-1000XM7")
+# PARÇA B (ADR-007): connector'lar artık gerçek (ya da fixture-mode)
+# Amazon/eBay/Idealo servislerinden geliyor -- fixture verisi "Example
+# Laptop" olduğu için sorgu buna göre güncellendi.
+$queries = @("Example Laptop")
 
 foreach ($query in $queries) {
     Write-Host ""

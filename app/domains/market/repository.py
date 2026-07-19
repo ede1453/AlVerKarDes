@@ -73,9 +73,11 @@ class PriceRepository:
         data = payload.model_dump()
         source = data.pop("source", None)
         observed_at = data.pop("observed_at", None)
+        is_real_data = data.pop("is_real_data", True)
         data["metadata_json"] = {
             "source": source,
             "observed_at": observed_at.isoformat() if observed_at else None,
+            "is_real_data": is_real_data,
         }
         price = Price(**data)
         self.db.add(price)
@@ -111,7 +113,7 @@ class PriceRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_for_product(self, product_id, limit: int | None = None):
+    async def list_for_product(self, product_id, limit: int | None = None, only_real: bool = False):
         stmt = (
             select(Price)
             .join(Offer, Offer.id == Price.offer_id)
@@ -123,8 +125,20 @@ class PriceRepository:
             .order_by(Price.created_at.asc())
         )
 
-        if limit:
-            stmt = stmt.limit(limit)
-
         result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+        prices = list(result.scalars().all())
+
+        if only_real:
+            # PARÇA B (bkz. ADR-007): fixture/test-fixture bağlantılardan
+            # (is_real_data=false) gelen fiyatlar tüketiciye dönük gerçek
+            # fiyat-geçmişi sinyaline hiç karışmamalı -- CONNECT-001/004'te
+            # kurulan sızıntı korumasının aynısı, artık yazma noktasında da.
+            prices = [
+                price for price in prices
+                if price.metadata_json.get("is_real_data", True) is not False
+            ]
+
+        if limit:
+            prices = prices[:limit]
+
+        return prices

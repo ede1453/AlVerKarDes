@@ -32,3 +32,4 @@ class PriceSnapshotCreate(BaseModel):
     stock_status: str | None = None
     source: str | None = None
     observed_at: datetime | None = None
+    is_real_data: bool = True
