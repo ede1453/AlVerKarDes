@@ -42,7 +42,9 @@ class ProductNormalizationService:
             storage=storage,
         )
 
-        canonical_key = build_canonical_key([brand, family, model, memory, storage, payload.country])
+        canonical_key = build_canonical_key(
+            [brand, family, model, memory, storage], payload.country, source
+        )
 
         return ProductIdentity(
             brand=brand,

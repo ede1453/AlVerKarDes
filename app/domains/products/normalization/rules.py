@@ -1,3 +1,4 @@
+import hashlib
 import re
 import unicodedata
 
@@ -72,6 +73,25 @@ def detect_category(text: str) -> str | None:
     return None
 
 
-def build_canonical_key(parts: list[str | None]) -> str:
-    cleaned = [re.sub(r"\s+", "-", normalize_text(p)) for p in parts if p]
-    return "::".join(cleaned)
+def build_canonical_key(
+    identity_parts: list[str | None], country: str | None, fallback_source: str
+) -> str:
+    """CONNECT-005: identity_parts (brand/family/model/memory/storage) are
+    joined with country only when AT LEAST ONE was actually detected. When
+    none were detected, country alone used to be returned as the key (e.g.
+    "de") -- meaning any two products the detectors couldn't recognize at
+    all would collide on the exact same canonical_key and silently dedupe
+    into one products row, mixing their price history. The fallback here is
+    a hash of the product's own distinguishing text (+ country) instead, so
+    two different unrecognized products only collide if their source text
+    (product_name/raw_title/product_url) and country are also identical --
+    which is the correct dedup behavior, not a bug."""
+    cleaned = [re.sub(r"\s+", "-", normalize_text(p)) for p in identity_parts if p]
+    if cleaned:
+        if country:
+            cleaned.append(re.sub(r"\s+", "-", normalize_text(country)))
+        return "::".join(cleaned)
+
+    digest_input = f"{normalize_text(fallback_source)}::{normalize_text(country or '')}"
+    digest = hashlib.sha256(digest_input.encode("utf-8")).hexdigest()[:16]
+    return f"unrecognized::{digest}"
