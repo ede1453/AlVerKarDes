@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
 from app.domains.identity.models import UserRole
+from app.domains.watchlist.watchlist_repository import WatchlistItemDBRepository
 from app.domains.watchlist.watchlist_service import WatchlistService
 
 
@@ -25,33 +28,43 @@ class WatchlistEvaluateRequest(BaseModel):
 
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 
-_service = WatchlistService()
+
+def _service(db: AsyncSession) -> WatchlistService:
+    # CLIENT-002e: Postgres-backed now (WatchlistItemDBRepository) -- same
+    # per-request construction pattern as DecisionMemoryRepository
+    # (AUTH-006 Part 2, see app/api/v1/decision_memory_router.py). No more
+    # module-level singleton: a shared instance can't hold a request-scoped
+    # AsyncSession.
+    return WatchlistService(repository=WatchlistItemDBRepository(db))
 
 
 @router.post("/items")
 async def add_watchlist_item(
     payload: WatchlistAddRequest,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
-    return _service.add_item(payload.model_dump())
+    return await _service(db).add_item(payload.model_dump())
 
 
 @router.get("/users/{user_id}/items")
 async def list_watchlist_items(
     user_id: str,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, user_id)
-    return {"items": _service.list_for_user(user_id)}
+    return {"items": await _service(db).list_for_user(user_id)}
 
 
 @router.get("/items/{item_id}")
 async def get_watchlist_item(
     item_id: str,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    item = _service.get_item(item_id)
+    item = await _service(db).get_item(item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="watchlist_item_not_found")
     ensure_owner(current_user, item["user_id"])
@@ -62,13 +75,15 @@ async def get_watchlist_item(
 async def evaluate_watchlist_item(
     item_id: str,
     payload: WatchlistEvaluateRequest,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    item = _service.get_item(item_id)
+    service = _service(db)
+    item = await service.get_item(item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="watchlist_item_not_found")
     ensure_owner(current_user, item["user_id"])
-    item = _service.evaluate_item(item_id, payload.model_dump())
+    item = await service.evaluate_item(item_id, payload.model_dump())
     if item is None:
         raise HTTPException(status_code=404, detail="watchlist_item_not_found")
     return item
@@ -77,13 +92,15 @@ async def evaluate_watchlist_item(
 @router.post("/items/{item_id}/deactivate")
 async def deactivate_watchlist_item(
     item_id: str,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    item = _service.get_item(item_id)
+    service = _service(db)
+    item = await service.get_item(item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="watchlist_item_not_found")
     ensure_owner(current_user, item["user_id"])
-    item = _service.deactivate_item(item_id)
+    item = await service.deactivate_item(item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="watchlist_item_not_found")
     return item
@@ -91,7 +108,8 @@ async def deactivate_watchlist_item(
 
 @router.post("/clear")
 async def clear_watchlist(
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.clear()
+    return await _service(db).clear()

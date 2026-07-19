@@ -1,12 +1,15 @@
+import pytest
+
 from app.domains.events.event_repository_factory import reset_event_repository
 from app.domains.watchlist.watchlist_service import WatchlistService
 
 
-def test_watchlist_service_adds_item_and_emits_event():
+@pytest.mark.asyncio
+async def test_watchlist_service_adds_item_and_emits_event():
     reset_event_repository()
     service = WatchlistService()
 
-    item = service.add_item(
+    item = await service.add_item(
         {
             "user_id": "user-1",
             "product_key": "macbook-air",
@@ -21,9 +24,10 @@ def test_watchlist_service_adds_item_and_emits_event():
     assert events
 
 
-def test_watchlist_service_evaluates_target_and_alert():
+@pytest.mark.asyncio
+async def test_watchlist_service_evaluates_target_and_alert():
     service = WatchlistService()
-    item = service.add_item(
+    item = await service.add_item(
         {
             "user_id": "user-1",
             "product_key": "macbook-air",
@@ -32,7 +36,7 @@ def test_watchlist_service_evaluates_target_and_alert():
         }
     )
 
-    evaluated = service.evaluate_item(
+    evaluated = await service.evaluate_item(
         item["id"],
         {
             "deal_detection": {"deal_level": "EXCELLENT_DEAL", "deal_score": 95},

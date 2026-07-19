@@ -3,14 +3,14 @@ from decimal import Decimal
 from app.domains.events.event_bus_service import EventBusService
 from app.domains.smart_alerts.smart_alert_service import SmartAlertService
 from app.domains.watchlist.watchlist_models import WatchlistItem, create_watchlist_item_id
-from app.domains.watchlist.watchlist_repository import InMemoryWatchlistRepository
+from app.domains.watchlist.watchlist_repository import InMemoryWatchlistRepository, WatchlistItemDBRepository
 from app.domains.watchlist.watchlist_serializer import serialize_watchlist_item
 
 
 class WatchlistService:
     def __init__(
         self,
-        repository: InMemoryWatchlistRepository | None = None,
+        repository: InMemoryWatchlistRepository | WatchlistItemDBRepository | None = None,
         smart_alert_service: SmartAlertService | None = None,
         event_bus_service: EventBusService | None = None,
     ):
@@ -18,7 +18,7 @@ class WatchlistService:
         self.smart_alert_service = smart_alert_service or SmartAlertService()
         self.event_bus_service = event_bus_service or EventBusService()
 
-    def add_item(self, payload: dict):
+    async def add_item(self, payload: dict):
         item = WatchlistItem(
             id=create_watchlist_item_id(),
             user_id=payload["user_id"],
@@ -29,7 +29,7 @@ class WatchlistService:
             channels=payload.get("channels", ["in_app"]),
             metadata=payload.get("metadata", {}),
         )
-        saved = self.repository.add(item)
+        saved = await self.repository.add(item)
 
         self.event_bus_service.publish(
             {
@@ -46,17 +46,17 @@ class WatchlistService:
 
         return serialize_watchlist_item(saved)
 
-    def get_item(self, item_id: str):
-        item = self.repository.get(item_id)
+    async def get_item(self, item_id: str):
+        item = await self.repository.get(item_id)
         if item is None:
             return None
         return serialize_watchlist_item(item)
 
-    def list_for_user(self, user_id: str):
-        return [serialize_watchlist_item(item) for item in self.repository.list_for_user(user_id)]
+    async def list_for_user(self, user_id: str):
+        return [serialize_watchlist_item(item) for item in await self.repository.list_for_user(user_id)]
 
-    def evaluate_item(self, item_id: str, payload: dict):
-        item = self.repository.get(item_id)
+    async def evaluate_item(self, item_id: str, payload: dict):
+        item = await self.repository.get(item_id)
         if item is None:
             return None
 
@@ -90,7 +90,7 @@ class WatchlistService:
             "evaluation_version": "watchlist_eval_v1",
         }
 
-        updated = self.repository.update_evaluation(item_id, evaluation)
+        updated = await self.repository.update_evaluation(item_id, evaluation)
 
         self.event_bus_service.publish(
             {
@@ -109,12 +109,12 @@ class WatchlistService:
 
         return serialize_watchlist_item(updated)
 
-    def deactivate_item(self, item_id: str):
-        item = self.repository.get(item_id)
+    async def deactivate_item(self, item_id: str):
+        item = await self.repository.get(item_id)
         if item is None:
             return None
-        return serialize_watchlist_item(self.repository.deactivate(item_id))
+        return serialize_watchlist_item(await self.repository.deactivate(item_id))
 
-    def clear(self):
-        self.repository.clear()
+    async def clear(self):
+        await self.repository.clear()
         return {"cleared": True}
