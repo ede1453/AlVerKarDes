@@ -77,5 +77,41 @@ export interface IdentityUser {
 export interface WatchlistItem {
   id: string;
   user_id: string;
-  [key: string]: unknown;
+  product_key: string;
+  query: string;
+  target_price: number | null;
+  marketplaces: string[] | null;
+  channels: string[] | null;
+  status: "ACTIVE" | "INACTIVE" | string;
+  last_evaluation: unknown;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DealFeedItem {
+  canonical_product_key: string;
+  product_id: string;
+  product_name: string;
+  offer_id: string;
+  source_id: string;
+  marketplace: string;
+  price: number;
+  effective_price: number;
+  currency: string;
+  confidence_score: number;
+  opportunity_score: number;
+  observed_discount_pct: number;
+  deal_decision: "BUY" | "WATCH" | "SKIP" | string | null;
+  deal_message: string;
+  is_real_data: boolean;
+  personalized_score: number;
+  personalization_reasons: string[];
+}
+
+export interface DealFeedResponse {
+  feed_count: number;
+  total_eligible_count: number;
+  items: DealFeedItem[];
+  metadata: Record<string, unknown>;
 }

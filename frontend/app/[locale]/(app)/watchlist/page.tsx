@@ -2,6 +2,7 @@ import type { Locale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BACKEND_ORIGIN, IdentityUser, WatchlistItem } from "@/lib/backend";
 import { getSessionToken } from "@/lib/session";
+import RemoveFromWatchlistButton from "@/components/RemoveFromWatchlistButton";
 
 interface WatchlistPageProps {
   // The (app)/layout.tsx guard above already validates this against
@@ -60,7 +61,11 @@ export default async function WatchlistPage({ params }: WatchlistPageProps) {
     );
   }
 
-  const items = await fetchWatchlist(token, user.id);
+  const allItems = await fetchWatchlist(token, user.id);
+  // The backend never filters INACTIVE (soft-deleted) items out of this
+  // list - that's deliberate server-side behaviour, not a bug. The frontend
+  // is responsible for only showing items the user hasn't removed.
+  const items = allItems?.filter((item) => item.status === "ACTIVE") ?? null;
 
   return (
     <div>
@@ -72,7 +77,21 @@ export default async function WatchlistPage({ params }: WatchlistPageProps) {
       ) : (
         <ul>
           {items.map((item) => (
-            <li key={item.id}>{JSON.stringify(item)}</li>
+            <li key={item.id} style={{ marginBottom: "1rem" }}>
+              <div>
+                <strong>{t("productKeyLabel")}</strong> {item.product_key}
+              </div>
+              <div>
+                <strong>{t("queryLabel")}</strong> {item.query}
+              </div>
+              <div>
+                <strong>{t("targetPriceLabel")}</strong>{" "}
+                {item.target_price !== null && item.target_price !== undefined
+                  ? item.target_price
+                  : t("noTargetPrice")}
+              </div>
+              <RemoveFromWatchlistButton itemId={item.id} />
+            </li>
           ))}
         </ul>
       )}

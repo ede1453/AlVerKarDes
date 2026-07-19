@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Locale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BACKEND_ORIGIN, ProductDetail } from "@/lib/backend";
+import { BACKEND_ORIGIN, IdentityUser, ProductDetail } from "@/lib/backend";
+import { getSessionToken } from "@/lib/session";
+import AddToWatchlistButton from "@/components/AddToWatchlistButton";
 
 interface ProductPageProps {
   params: Promise<{ locale: Locale; productId: string }>;
@@ -29,6 +31,19 @@ async function fetchProductDetail(productId: string): Promise<DetailResult> {
     return { kind: "error" };
   }
   return { kind: "ok", data: (await res.json()) as ProductDetail };
+}
+
+async function fetchMe(token: string): Promise<IdentityUser | null> {
+  try {
+    const res = await fetch(`${BACKEND_ORIGIN}/api/v1/identity/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as IdentityUser;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: ProductPageProps) {
@@ -61,10 +76,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const { product, offers, price_history: priceHistory, deal_signal: dealSignal } = result.data;
 
+  const token = await getSessionToken();
+  const user = token ? await fetchMe(token) : null;
+
   return (
     <div>
       <h1>{product.title}</h1>
       <p style={{ color: "#666" }}>{product.canonical_key}</p>
+
+      {user ? (
+        <AddToWatchlistButton userId={user.id} productKey={product.canonical_key} query={product.title} />
+      ) : (
+        <p className="notice-box">{t("watchlistLoginPrompt")}</p>
+      )}
 
       <section style={{ marginTop: "1.5rem" }}>
         <h2>{t("offersHeading")}</h2>

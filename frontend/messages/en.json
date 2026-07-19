@@ -7,6 +7,7 @@
     "nav": {
       "account": "My Account",
       "watchlist": "My Watchlist",
+      "deals": "Deals",
       "logout": "Log out",
       "login": "Log in",
       "register": "Register"
@@ -48,7 +49,12 @@
     "trendLabel": "Trend:",
     "noHistory": "There is no real price history for this product yet ({reason}).",
     "decision": "Decision:",
-    "scoreLabel": "(score {score})"
+    "scoreLabel": "(score {score})",
+    "watchlistAddButton": "Add to watchlist",
+    "watchlistAdding": "Adding...",
+    "watchlistAdded": "Added to watchlist",
+    "watchlistAddError": "The item could not be added to your watchlist. Please try again later.",
+    "watchlistLoginPrompt": "Log in to add this product to your watchlist."
   },
   "auth": {
     "emailLabel": "Email",
@@ -82,6 +88,29 @@
   "watchlist": {
     "heading": "My Watchlist",
     "fetchError": "An error occurred while loading the watchlist. The backend could not be reached, please try again later.",
-    "empty": "There is nothing on your watchlist yet."
+    "empty": "There is nothing on your watchlist yet.",
+    "productKeyLabel": "Product:",
+    "queryLabel": "Search term:",
+    "targetPriceLabel": "Target price:",
+    "noTargetPrice": "not set",
+    "removeButton": "Remove",
+    "removing": "Removing...",
+    "removeError": "The item could not be removed. Please try again later."
+  },
+  "deals": {
+    "heading": "Deals",
+    "fetchError": "An error occurred while loading the deals feed. The backend could not be reached, please try again later.",
+    "empty": "There are no deals yet.",
+    "tableProduct": "Product",
+    "tableStore": "Store",
+    "tablePrice": "Price",
+    "tableDecision": "Decision",
+    "tableScore": "Score",
+    "decision": {
+      "BUY": "Buy",
+      "WATCH": "Watch",
+      "SKIP": "Skip",
+      "unknown": "Unknown"
+    }
   }
 }

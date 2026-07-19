@@ -7,6 +7,7 @@
     "nav": {
       "account": "Mein Konto",
       "watchlist": "Meine Merkliste",
+      "deals": "Angebote",
       "logout": "Abmelden",
       "login": "Anmelden",
       "register": "Registrieren"
@@ -48,7 +49,12 @@
     "trendLabel": "Trend:",
     "noHistory": "Für dieses Produkt gibt es noch keinen echten Preisverlauf ({reason}).",
     "decision": "Entscheidung:",
-    "scoreLabel": "(Punktzahl {score})"
+    "scoreLabel": "(Punktzahl {score})",
+    "watchlistAddButton": "Zur Merkliste hinzufügen",
+    "watchlistAdding": "Wird hinzugefügt...",
+    "watchlistAdded": "Zur Merkliste hinzugefügt",
+    "watchlistAddError": "Der Artikel konnte nicht zur Merkliste hinzugefügt werden. Bitte versuche es später erneut.",
+    "watchlistLoginPrompt": "Melde dich an, um dieses Produkt zu deiner Merkliste hinzuzufügen."
   },
   "auth": {
     "emailLabel": "E-Mail",
@@ -82,6 +88,29 @@
   "watchlist": {
     "heading": "Meine Merkliste",
     "fetchError": "Beim Laden der Merkliste ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
-    "empty": "Deine Merkliste ist noch leer."
+    "empty": "Deine Merkliste ist noch leer.",
+    "productKeyLabel": "Produkt:",
+    "queryLabel": "Suchbegriff:",
+    "targetPriceLabel": "Zielpreis:",
+    "noTargetPrice": "nicht festgelegt",
+    "removeButton": "Entfernen",
+    "removing": "Wird entfernt...",
+    "removeError": "Der Eintrag konnte nicht entfernt werden. Bitte versuche es später erneut."
+  },
+  "deals": {
+    "heading": "Angebote",
+    "fetchError": "Beim Laden der Angebotsliste ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "empty": "Es gibt noch keine Angebote.",
+    "tableProduct": "Produkt",
+    "tableStore": "Shop",
+    "tablePrice": "Preis",
+    "tableDecision": "Entscheidung",
+    "tableScore": "Punktzahl",
+    "decision": {
+      "BUY": "Kaufen",
+      "WATCH": "Beobachten",
+      "SKIP": "Überspringen",
+      "unknown": "Unbekannt"
+    }
   }
 }

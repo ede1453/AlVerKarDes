@@ -52,6 +52,7 @@ export default async function LocaleLayout({
           <strong>AlVerKarDes</strong>
         </Link>
         <nav>
+          <Link href="/firsatlar">{t("deals")}</Link>
           {isLoggedIn ? (
             <>
               <Link href="/dashboard">{t("account")}</Link>
