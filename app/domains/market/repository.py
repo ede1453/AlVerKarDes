@@ -110,3 +110,21 @@ class PriceRepository:
             .limit(1)
         )
         return result.scalar_one_or_none()
+
+    async def list_for_product(self, product_id, limit: int | None = None):
+        stmt = (
+            select(Price)
+            .join(Offer, Offer.id == Price.offer_id)
+            .where(
+                Offer.product_id == product_id,
+                Price.deleted_at.is_(None),
+                Offer.deleted_at.is_(None),
+            )
+            .order_by(Price.created_at.asc())
+        )
+
+        if limit:
+            stmt = stmt.limit(limit)
+
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
