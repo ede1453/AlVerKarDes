@@ -1,0 +1,27 @@
+{
+  "package": "AI Consumer Intelligence RC441-RC450 Authentication Core",
+  "version": "1.0",
+  "rc_start": 441,
+  "rc_end": 450,
+  "features": {
+    "password_policy": true,
+    "jwt_claim_hardening": true,
+    "opaque_refresh_tokens": true,
+    "refresh_rotation": true,
+    "reuse_detection": true,
+    "persistent_sessions": true,
+    "login_lockout": true,
+    "email_verification": true,
+    "password_reset_foundation": true,
+    "password_history": true,
+    "auth_audit_events": true,
+    "alembic_migration": "0015_authentication_core",
+    "openapi_tests": true,
+    "integration_scripts": true
+  },
+  "compatibility": {
+    "existing_users_table": true,
+    "existing_identity_routes_preserved": true,
+    "common_sqlalchemy_base": true
+  }
+}
