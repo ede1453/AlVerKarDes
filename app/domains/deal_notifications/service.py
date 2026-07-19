@@ -341,6 +341,12 @@ class DealNotificationService:
             },
         }
 
+    def get_notification(
+        self,
+        notification_id: str,
+    ) -> dict[str, Any] | None:
+        return self._notifications.get(notification_id)
+
     def mark_delivered(
         self,
         *,

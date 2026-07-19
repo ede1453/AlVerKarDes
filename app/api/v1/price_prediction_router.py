@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.price_prediction.price_prediction_service import PricePredictionService
+from app.domains.identity.dependencies import get_current_user
 
 
 class PricePredictionRequest(BaseModel):
@@ -20,10 +21,16 @@ _service = PricePredictionService()
 
 
 @router.post("/predict")
-async def predict_price(payload: PricePredictionRequest):
+async def predict_price(
+    payload: PricePredictionRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.predict(payload.model_dump())
 
 
 @router.post("/predict-cached")
-async def predict_price_cached(payload: CachedPricePredictionRequest):
+async def predict_price_cached(
+    payload: CachedPricePredictionRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.predict_cached(payload.model_dump())

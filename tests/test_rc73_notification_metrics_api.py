@@ -1,19 +1,23 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import internal_service_headers, operator_headers
 
 
 def test_rc73_notification_metrics_api_contract():
-    client.post("/api/v1/notification-outbox/clear")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
-    client.post(
-        "/api/v1/notification-outbox/enqueue",
-        json={"user_id": "rc73-user", "title": "RC73", "message": "Metrics"},
-    )
+        client.post(
+            "/api/v1/notification-outbox/enqueue",
+            json={"user_id": "rc73-user", "title": "RC73", "message": "Metrics"},
+            headers=internal_service_headers(),
+        )
 
-    response = client.get("/api/v1/notification-outbox/metrics")
+        response = client.get(
+            "/api/v1/notification-outbox/metrics", headers=headers
+        )
 
     assert response.status_code == 200
     data = response.json()
@@ -24,17 +28,28 @@ def test_rc73_notification_metrics_api_contract():
 
 
 def test_rc73_notification_metrics_api_after_delivery():
-    client.post("/api/v1/notification-outbox/clear")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
-    queued = client.post(
-        "/api/v1/notification-outbox/enqueue",
-        json={"user_id": "rc73-user", "title": "RC73", "message": "Delivered"},
-    ).json()
+        queued = client.post(
+            "/api/v1/notification-outbox/enqueue",
+            json={"user_id": "rc73-user", "title": "RC73", "message": "Delivered"},
+            headers=internal_service_headers(),
+        ).json()
 
-    client.post("/api/v1/notification-outbox/claim-next")
-    client.post(f"/api/v1/notification-outbox/{queued['id']}/mark-delivered")
+        client.post(
+            "/api/v1/notification-outbox/claim-next",
+            headers=internal_service_headers(),
+        )
+        client.post(
+            f"/api/v1/notification-outbox/{queued['id']}/mark-delivered",
+            headers=internal_service_headers(),
+        )
 
-    data = client.get("/api/v1/notification-outbox/metrics").json()
+        data = client.get(
+            "/api/v1/notification-outbox/metrics", headers=headers
+        ).json()
 
     assert data["delivered_count"] == 1
     assert data["delivery_success_rate"] == 1.0

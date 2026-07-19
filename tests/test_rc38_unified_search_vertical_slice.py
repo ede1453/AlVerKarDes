@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
 
 def test_unified_search_vertical_slice_search_cache_event():
-    client.post("/api/v1/events/clear")
+    client.post("/api/v1/events/clear", headers=internal_service_headers())
 
     response = client.post(
         "/api/v1/unified-search/search-cached",
@@ -41,7 +42,8 @@ def test_unified_search_vertical_slice_search_cache_event():
     assert data["value"]["top_offer"]["marketplace"] == "saturn"
 
     event_response = client.get(
-        "/api/v1/events?event_type=unified_search.completed&source=unified_search"
+        "/api/v1/events?event_type=unified_search.completed&source=unified_search",
+        headers=internal_service_headers(),
     )
 
     assert event_response.status_code == 200

@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -16,15 +17,20 @@ def test_rc68_worker_vertical_slice_enqueue_claim_fail_retry_dead_letter():
             "message": "Retry path",
             "payload": {"idempotency_key": "rc68-user:vertical"},
         },
+        headers=internal_service_headers(),
     ).json()
 
     for expected_retry_count in [1, 2, 3]:
-        claimed = client.post("/api/v1/notification-outbox/claim-next").json()
+        claimed = client.post(
+            "/api/v1/notification-outbox/claim-next",
+            headers=internal_service_headers(),
+        ).json()
         assert claimed["claimed"] is True
 
         failed = client.post(
             f"/api/v1/notification-outbox/{queued['id']}/mark-failed",
             json={"error": "PROVIDER_TIMEOUT"},
+            headers=internal_service_headers(),
         ).json()
 
         assert failed["updated"] is True

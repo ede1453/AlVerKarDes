@@ -1,8 +1,11 @@
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.domains.identity.dependencies import get_current_user
+from app.domains.identity.models import UserRole
 
 try:
     from app.core.database import get_db
@@ -67,6 +70,18 @@ async def override_get_db():
     yield FakeAsyncDB()
 
 
+async def override_get_current_user():
+    # get_current_user itself resolves through get_db (see
+    # app/domains/identity/dependencies.py), so a real auth_headers()
+    # register/login flow would run against the FakeAsyncDB above and fail.
+    # Bypass auth directly instead, same as the get_db override bypasses
+    # the real database for this DB-mocking test.
+    # AUTH-006 Part 3: the /db endpoint now also runs require_role(OPERATOR)
+    # on top of get_current_user, so the stand-in user needs a real `.role`
+    # attribute at OPERATOR or above or the role check itself raises.
+    return SimpleNamespace(id="smoke-test-user", role=UserRole.OPERATOR)
+
+
 def test_llm_audit_db_endpoint_smoke_if_available_without_real_postgres():
     paths = TestClient(app).get("/openapi.json").json()["paths"]
 
@@ -77,6 +92,7 @@ def test_llm_audit_db_endpoint_smoke_if_available_without_real_postgres():
         return
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     try:
         client = TestClient(app)

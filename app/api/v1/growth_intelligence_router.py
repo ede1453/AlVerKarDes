@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.growth_intelligence.service import (
     GrowthRevenueIntelligenceService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/growth-intelligence",
@@ -20,7 +22,10 @@ class PayloadRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_state():
+def clear_state(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = GrowthRevenueIntelligenceService()
     return {"cleared": True}
@@ -74,6 +79,8 @@ _METHODS = {
 def execute_operation(
     operation: str,
     payload: PayloadRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     method_name = _METHODS.get(operation)
 

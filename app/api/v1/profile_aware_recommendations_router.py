@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.profile_aware_recommendations.profile_aware_service import (
     ProfileAwareRecommendationService,
 )
@@ -23,5 +24,9 @@ _service = ProfileAwareRecommendationService()
 
 
 @router.post("/recommend")
-async def recommend_with_profile(payload: ProfileAwareRecommendationRequest):
+async def recommend_with_profile(
+    payload: ProfileAwareRecommendationRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.recommend(payload.model_dump())

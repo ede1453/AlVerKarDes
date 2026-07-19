@@ -1,8 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_llm_audit_vertical_slice_from_gateway_response():
@@ -20,20 +19,25 @@ def test_llm_audit_vertical_slice_from_gateway_response():
         },
     }
 
-    gateway_response = client.post(
-        "/api/v1/llm-gateway/generate",
-        json=request_payload,
-    )
+    with TestClient(app) as client:
+        headers = operator_headers(client)
 
-    assert gateway_response.status_code == 200
+        gateway_response = client.post(
+            "/api/v1/llm-gateway/generate",
+            headers=headers,
+            json=request_payload,
+        )
 
-    audit_response = client.post(
-        "/api/v1/llm-audit-traces",
-        json={
-            "request_payload": request_payload,
-            "gateway_response": gateway_response.json(),
-        },
-    )
+        assert gateway_response.status_code == 200
+
+        audit_response = client.post(
+            "/api/v1/llm-audit-traces",
+            headers=headers,
+            json={
+                "request_payload": request_payload,
+                "gateway_response": gateway_response.json(),
+            },
+        )
 
     assert audit_response.status_code == 200
 

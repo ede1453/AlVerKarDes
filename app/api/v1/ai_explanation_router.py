@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.ai_explanation.explanation_service import AIExplanationService
+from app.domains.identity.dependencies import get_current_user
 
 
 class AIExplanationRequest(BaseModel):
@@ -25,10 +26,16 @@ _service = AIExplanationService()
 
 
 @router.post("/explain")
-async def explain_decision(payload: AIExplanationRequest):
+async def explain_decision(
+    payload: AIExplanationRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.explain(payload.model_dump())
 
 
 @router.post("/explain-cached")
-async def explain_decision_cached(payload: CachedAIExplanationRequest):
+async def explain_decision_cached(
+    payload: CachedAIExplanationRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.explain_cached(payload.model_dump())

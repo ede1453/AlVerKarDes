@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.decision_pipeline.ai_decision_pipeline_service import (
     AIDecisionPipelineService,
 )
+from app.domains.identity.dependencies import get_current_user
 
 
 class AIDecisionPipelineRequest(BaseModel):
@@ -21,5 +22,8 @@ router = APIRouter(prefix="/ai-decision-pipeline", tags=["ai-decision-pipeline"]
 
 
 @router.post("/run")
-async def run_ai_decision_pipeline(payload: AIDecisionPipelineRequest):
+async def run_ai_decision_pipeline(
+    payload: AIDecisionPipelineRequest,
+    current_user=Depends(get_current_user),
+):
     return AIDecisionPipelineService().run(payload.model_dump())

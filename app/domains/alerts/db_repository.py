@@ -18,6 +18,9 @@ class AlertRuleDBRepository:
         await self.db.refresh(rule)
         return rule
 
+    async def get(self, rule_id: UUID):
+        return await self.db.get(AlertRuleModel, rule_id)
+
     async def list_active_for_offer(self, offer_id: UUID):
         result = await self.db.execute(
             select(AlertRuleModel).where(

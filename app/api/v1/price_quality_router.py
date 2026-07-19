@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.commerce_ingestion.price_quality import (
@@ -11,6 +11,7 @@ from app.domains.commerce_ingestion.price_quality import (
     PriceQualityPipeline,
     SourceTrustReconciler,
 )
+from app.domains.identity.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/price-quality",
@@ -64,6 +65,7 @@ class PipelineRequest(OfferListRequest):
 @router.post("/anomaly")
 def detect_price_anomaly(
     payload: AnomalyRequest,
+    current_user=Depends(get_current_user),
 ):
     return PriceAnomalyDetector().detect(
         **payload.model_dump()
@@ -73,6 +75,7 @@ def detect_price_anomaly(
 @router.post("/freshness")
 def evaluate_price_freshness(
     payload: FreshnessRequest,
+    current_user=Depends(get_current_user),
 ):
     return PriceFreshnessService().evaluate(
         **payload.model_dump()
@@ -82,6 +85,7 @@ def evaluate_price_freshness(
 @router.post("/currency")
 def normalize_currency(
     payload: CurrencyRequest,
+    current_user=Depends(get_current_user),
 ):
     return CurrencyNormalizer().normalize(
         **payload.model_dump()
@@ -91,6 +95,7 @@ def normalize_currency(
 @router.post("/reconcile")
 def reconcile_sources(
     payload: OfferListRequest,
+    current_user=Depends(get_current_user),
 ):
     return SourceTrustReconciler().reconcile(
         offers=payload.offers
@@ -100,6 +105,7 @@ def reconcile_sources(
 @router.post("/best-offer")
 def select_best_offer(
     payload: BestOfferRequest,
+    current_user=Depends(get_current_user),
 ):
     return BestOfferAggregator().select(
         offers=payload.offers,
@@ -112,6 +118,7 @@ def select_best_offer(
 @router.post("/pipeline")
 def evaluate_price_quality_pipeline(
     payload: PipelineRequest,
+    current_user=Depends(get_current_user),
 ):
     return PriceQualityPipeline().evaluate_offers(
         offers=payload.offers,

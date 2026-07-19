@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -24,6 +25,7 @@ def test_job_queue_vertical_slice_runs_orchestration_job():
                 "prompt_version": "shopping_v1",
             },
         },
+        headers=internal_service_headers(),
     )
 
     assert response.status_code == 200

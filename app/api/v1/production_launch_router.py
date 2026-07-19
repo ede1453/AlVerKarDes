@@ -1,8 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.production_launch.service import (
     ProductionLaunchService,
 )
@@ -42,7 +44,6 @@ _METHODS = {
     "connector-rate-limit": "evaluate_connector_rate_limit",
     "connector-readiness": "build_connector_readiness",
     "rate-limit": "evaluate_rate_limit",
-    "authorization": "evaluate_authorization",
     "cors": "validate_cors",
     "security-headers": "build_security_headers",
     "password-policy": "validate_password_policy",
@@ -67,7 +68,10 @@ _METHODS = {
 
 
 @router.post("/clear")
-def clear_state():
+def clear_state(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = ProductionLaunchService()
     return {"cleared": True}
@@ -77,6 +81,8 @@ def clear_state():
 def execute_operation(
     operation: str,
     payload: PayloadRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     method_name = _METHODS.get(operation)
 

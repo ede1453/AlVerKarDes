@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -8,6 +9,7 @@ client = TestClient(app)
 def test_rc88_vertical_slice_acquire_block_release_reacquire():
     first = client.post(
         "/api/v1/notification-outbox/leader/acquire",
+        headers=internal_service_headers(),
         json={
             "worker_id": "worker-v1",
             "lease_seconds": 30,
@@ -18,6 +20,7 @@ def test_rc88_vertical_slice_acquire_block_release_reacquire():
 
     blocked = client.post(
         "/api/v1/notification-outbox/leader/acquire",
+        headers=internal_service_headers(),
         json={
             "worker_id": "worker-v2",
             "lease_seconds": 30,
@@ -29,6 +32,7 @@ def test_rc88_vertical_slice_acquire_block_release_reacquire():
 
     released = client.post(
         "/api/v1/notification-outbox/leader/release",
+        headers=internal_service_headers(),
         json={
             "worker_id": "worker-v1",
         },
@@ -38,6 +42,7 @@ def test_rc88_vertical_slice_acquire_block_release_reacquire():
 
     second = client.post(
         "/api/v1/notification-outbox/leader/acquire",
+        headers=internal_service_headers(),
         json={
             "worker_id": "worker-v2",
             "lease_seconds": 30,

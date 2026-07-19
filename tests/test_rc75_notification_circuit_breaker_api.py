@@ -1,14 +1,17 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import internal_service_headers, operator_headers
 
 
 def test_rc75_circuit_breaker_status_api_contract():
-    client.post("/api/v1/notification-outbox/clear")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
-    response = client.get("/api/v1/notification-outbox/circuit-breaker/status")
+        response = client.get(
+            "/api/v1/notification-outbox/circuit-breaker/status", headers=headers
+        )
 
     assert response.status_code == 200
     data = response.json()
@@ -19,9 +22,14 @@ def test_rc75_circuit_breaker_status_api_contract():
 
 
 def test_rc75_circuit_breaker_can_deliver_api_contract():
-    client.post("/api/v1/notification-outbox/clear")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
-    response = client.get("/api/v1/notification-outbox/circuit-breaker/can-deliver")
+        response = client.get(
+            "/api/v1/notification-outbox/circuit-breaker/can-deliver",
+            headers=internal_service_headers(),
+        )
 
     assert response.status_code == 200
     data = response.json()

@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 import app.api.v1.notification_outbox_router as outbox_router
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 from app.main import app
+from tests.auth_test_helpers import release_manager_headers
 
 client = TestClient(app)
 
@@ -14,10 +15,12 @@ def reset_service():
     outbox_router._service = NotificationOutboxService()
 
 def test_rc95_vertical_slice():
-    for name in ["openapi_contract","schema_contract","database_migrations","runtime_health","security_review"]:
-        client.post("/api/v1/notification-outbox/readiness/checks", json={"check_name":name,"passed":True,"details":"passed"})
-    client.post("/api/v1/notification-outbox/release-manifest/publish", json={"release_version":"v0.6.0","commit_sha":"abc123","build_id":"build-91"})
-    approved = client.post("/api/v1/notification-outbox/release-approval/approve", json={"approved_by":"admin","notes":"ready"}).json()
-    assert approved["status"] == "APPROVED"
-    revoked = client.post("/api/v1/notification-outbox/release-approval/revoke", json={"revoked_by":"admin","reason":"defect"}).json()
+    with TestClient(app) as client:
+        headers = release_manager_headers(client)
+        for name in ["openapi_contract","schema_contract","database_migrations","runtime_health","security_review"]:
+            client.post("/api/v1/notification-outbox/readiness/checks", headers=headers, json={"check_name":name,"passed":True,"details":"passed"})
+        client.post("/api/v1/notification-outbox/release-manifest/publish", headers=headers, json={"release_version":"v0.6.0","commit_sha":"abc123","build_id":"build-91"})
+        approved = client.post("/api/v1/notification-outbox/release-approval/approve", headers=headers, json={"approved_by":"admin","notes":"ready"}).json()
+        assert approved["status"] == "APPROVED"
+        revoked = client.post("/api/v1/notification-outbox/release-approval/revoke", headers=headers, json={"revoked_by":"admin","reason":"defect"}).json()
     assert revoked["status"] == "REVOKED"

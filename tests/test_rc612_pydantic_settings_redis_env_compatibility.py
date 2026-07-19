@@ -17,6 +17,7 @@ def test_rc612_config_settings_has_safe_cache_defaults(monkeypatch):
         "postgresql+asyncpg://postgres:12345678@localhost:5432/aici",
     )
     monkeypatch.setenv("JWT_SECRET", "local-dev-secret")
+    monkeypatch.setenv("INTERNAL_SERVICE_KEY", "local-dev-internal-service-key")
     monkeypatch.delenv("AICI_REDIS_URL", raising=False)
 
     from app.core.config import Settings

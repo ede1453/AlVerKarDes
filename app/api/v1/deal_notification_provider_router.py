@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.deal_notifications.provider_governance import (
     NotificationProviderGovernanceService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/deal-notification-providers",
@@ -61,7 +63,10 @@ class PerformanceRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_provider_governance():
+def clear_provider_governance(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = NotificationProviderGovernanceService()
     return {"cleared": True}
@@ -70,6 +75,8 @@ def clear_provider_governance():
 @router.post("/providers")
 def register_provider(
     payload: ProviderRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.providers.register_provider(
         **payload.model_dump()
@@ -77,7 +84,11 @@ def register_provider(
 
 
 @router.get("/providers/select")
-def select_provider(channel: str):
+def select_provider(
+    channel: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.providers.select_provider(
         channel=channel
     )
@@ -86,6 +97,8 @@ def select_provider(channel: str):
 @router.post("/delivery-policy/evaluate")
 def evaluate_delivery_policy(
     payload: DeliveryPolicyRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.delivery_policy.evaluate(
         **payload.model_dump()
@@ -95,6 +108,8 @@ def evaluate_delivery_policy(
 @router.post("/subscriptions")
 def set_subscription(
     payload: SubscriptionRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.compliance.set_subscription(
         **payload.model_dump()
@@ -105,6 +120,8 @@ def set_subscription(
 def is_unsubscribed(
     user_id: str,
     channel: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return {
         "user_id": user_id,
@@ -121,6 +138,8 @@ def is_unsubscribed(
 @router.post("/experiments")
 def create_experiment(
     payload: ExperimentRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.experiments.create_experiment(
         **payload.model_dump()
@@ -133,6 +152,8 @@ def create_experiment(
 def assign_variant(
     experiment_id: str,
     user_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.experiments.assign_variant(
         experiment_id=experiment_id,
@@ -143,6 +164,8 @@ def assign_variant(
 @router.post("/performance")
 def summarize_performance(
     payload: PerformanceRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.performance.summarize(
         **payload.model_dump()

@@ -1,23 +1,27 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import operator_headers
 
 client = TestClient(app)
 
 
 def test_rc103_request_timeline_contains_start_and_completion():
-    client.post("/api/v1/observability/clear")
+    with TestClient(app) as scoped_client:
+        headers = operator_headers(scoped_client)
+        scoped_client.post("/api/v1/observability/clear", headers=headers)
 
-    response = client.get(
-        "/health",
-        headers={"X-Correlation-ID": "corr-timeline-rc103"},
-    )
+        response = scoped_client.get(
+            "/health",
+            headers={"X-Correlation-ID": "corr-timeline-rc103"},
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
-    timeline = client.get(
-        "/api/v1/observability/timelines/corr-timeline-rc103"
-    ).json()
+        timeline = scoped_client.get(
+            "/api/v1/observability/timelines/corr-timeline-rc103",
+            headers=headers,
+        ).json()
 
     events = timeline["events"]
     event_names = [item["event"] for item in events]

@@ -1,28 +1,37 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import auth_headers_and_user_id
 
 
 def test_user_profile_vertical_slice_from_activity_summary_to_recommendation_context():
-    client.post("/api/v1/user-activity/clear")
-    client.post("/api/v1/user-profiles/clear")
+    with TestClient(app) as client:
+        headers, user_id = auth_headers_and_user_id(client)
 
-    client.post(
-        "/api/v1/user-activity/record",
-        json={"user_id": "user-1", "event_type": "liked", "product_key": "macbook-air"},
-    )
+        client.post("/api/v1/user-activity/clear", headers=headers)
+        client.post("/api/v1/user-profiles/clear", headers=headers)
 
-    summary = client.get("/api/v1/user-activity/users/user-1/summary")
-    assert summary.status_code == 200
+        client.post(
+            "/api/v1/user-activity/record",
+            headers=headers,
+            json={"user_id": user_id, "event_type": "liked", "product_key": "macbook-air"},
+        )
 
-    merge = client.post(
-        "/api/v1/user-profiles/feedback/merge",
-        json={"user_id": "user-1", "feedback_summary": summary.json()},
-    )
-    assert merge.status_code == 200
+        summary = client.get(
+            f"/api/v1/user-activity/users/{user_id}/summary", headers=headers
+        )
+        assert summary.status_code == 200
 
-    context = client.get("/api/v1/user-profiles/user-1/recommendation-context")
+        merge = client.post(
+            "/api/v1/user-profiles/feedback/merge",
+            headers=headers,
+            json={"user_id": user_id, "feedback_summary": summary.json()},
+        )
+        assert merge.status_code == 200
+
+        context = client.get(
+            f"/api/v1/user-profiles/{user_id}/recommendation-context", headers=headers
+        )
+
     assert context.status_code == 200
     assert "macbook-air" in context.json()["preferred_product_keys"]

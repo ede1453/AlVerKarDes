@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.user_activity.activity_service import UserActivityService
 
 
@@ -23,25 +25,44 @@ _service = UserActivityService()
 
 
 @router.post("/record")
-async def record_user_activity(payload: UserActivityRecordRequest):
+async def record_user_activity(
+    payload: UserActivityRecordRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.record(payload.model_dump())
 
 
 @router.get("/users/{user_id}/events")
-async def list_user_activity_events(user_id: str):
+async def list_user_activity_events(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.list_for_user(user_id)
 
 
 @router.get("/users/{user_id}/summary")
-async def summarize_user_activity(user_id: str):
+async def summarize_user_activity(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.summarize(user_id)
 
 
 @router.post("/recommendations/adjust")
-async def adjust_recommendations_from_activity(payload: RecommendationAdjustmentRequest):
+async def adjust_recommendations_from_activity(
+    payload: RecommendationAdjustmentRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.adjust_recommendations(payload.model_dump())
 
 
 @router.post("/clear")
-async def clear_user_activity():
+async def clear_user_activity(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.clear()

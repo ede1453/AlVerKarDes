@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_cache_status_api_returns_status():
-    response = client.get("/api/v1/cache/status")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.get("/api/v1/cache/status", headers=headers)
 
     assert response.status_code == 200
     assert response.json()["enabled"] is True
@@ -14,15 +15,20 @@ def test_cache_status_api_returns_status():
 
 
 def test_cache_set_and_get_api_roundtrip():
-    assert client.post("/api/v1/cache/clear").status_code == 200
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        assert client.post("/api/v1/cache/clear", headers=headers).status_code == 200
 
-    set_response = client.post(
-        "/api/v1/cache/set",
-        json={"key": "api:test", "value": {"hello": "world"}, "ttl_seconds": 60},
-    )
-    assert set_response.status_code == 200
+        set_response = client.post(
+            "/api/v1/cache/set",
+            headers=headers,
+            json={"key": "api:test", "value": {"hello": "world"}, "ttl_seconds": 60},
+        )
+        assert set_response.status_code == 200
 
-    get_response = client.post("/api/v1/cache/get", json={"key": "api:test"})
+        get_response = client.post(
+            "/api/v1/cache/get", headers=headers, json={"key": "api:test"}
+        )
 
     assert get_response.status_code == 200
     assert get_response.json()["hit"] is True

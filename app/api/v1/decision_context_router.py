@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.decision_context.decision_context_service import DecisionContextService
+from app.domains.identity.dependencies import get_current_user
 
 
 class DecisionContextRequest(BaseModel):
@@ -25,5 +26,8 @@ router = APIRouter(prefix="/decision-context", tags=["decision-context"])
 
 
 @router.post("/build")
-async def build_decision_context(payload: DecisionContextRequest):
+async def build_decision_context(
+    payload: DecisionContextRequest,
+    current_user=Depends(get_current_user),
+):
     return DecisionContextService().build(payload.model_dump())

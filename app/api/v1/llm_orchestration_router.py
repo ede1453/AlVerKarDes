@@ -6,6 +6,8 @@ try:
 except Exception:  # pragma: no cover - compatibility for older app layouts
     get_db = None
 
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.llm_audit_trace.llm_audit_service import LLMAuditTraceService
 from app.domains.llm_orchestration.guarded_orchestration_service import (
     GuardedLLMOrchestrationService,
@@ -43,27 +45,47 @@ router = APIRouter(prefix="/llm-orchestration", tags=["llm-orchestration"])
 
 
 @router.post("/run")
-async def run_llm_orchestration(payload: LLMOrchestrationRunRequest):
+async def run_llm_orchestration(
+    payload: LLMOrchestrationRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return LLMOrchestrationService().run(payload.model_dump())
 
 
 @router.post("/run-with-audit")
-async def run_llm_orchestration_with_audit(payload: LLMOrchestrationRunRequest):
+async def run_llm_orchestration_with_audit(
+    payload: LLMOrchestrationRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return await LLMOrchestrationService().run_with_audit(payload.model_dump())
 
 
 @router.post("/run-intelligent")
-async def run_intelligent_llm_orchestration(payload: IntelligentLLMOrchestrationRunRequest):
+async def run_intelligent_llm_orchestration(
+    payload: IntelligentLLMOrchestrationRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return LLMOrchestrationService().run_with_intelligent_selection(payload.model_dump())
 
 
 @router.post("/run-guarded")
-async def run_guarded_llm_orchestration(payload: GuardedLLMOrchestrationRunRequest):
+async def run_guarded_llm_orchestration(
+    payload: GuardedLLMOrchestrationRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return GuardedLLMOrchestrationService().run(payload.model_dump())
 
 
 @router.post("/run-guarded-with-audit")
-async def run_guarded_llm_orchestration_with_audit(payload: GuardedLLMOrchestrationRunRequest):
+async def run_guarded_llm_orchestration_with_audit(
+    payload: GuardedLLMOrchestrationRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return await GuardedLLMOrchestrationService().run_with_audit(payload.model_dump())
 
 
@@ -72,6 +94,8 @@ if get_db is not None:
     async def run_llm_orchestration_with_db_audit(
         payload: LLMOrchestrationRunRequest,
         db=Depends(get_db),
+        # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+        current_user=Depends(require_role(UserRole.OPERATOR)),
     ):
         service = LLMOrchestrationService(
             audit_service=LLMAuditTraceService(db=db)

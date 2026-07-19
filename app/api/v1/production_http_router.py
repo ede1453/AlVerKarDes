@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.commerce_ingestion.http_execution import (
@@ -9,6 +9,8 @@ from app.domains.commerce_ingestion.http_execution import (
 from app.domains.commerce_ingestion.production_http import (
     MultiPageConnectorRuntime,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/production-http",
@@ -43,7 +45,10 @@ class MultiPageExecutionRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_production_http_state():
+def clear_production_http_state(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _transport, _runtime
     _transport = FixtureHttpTransport()
     _runtime = MultiPageConnectorRuntime(
@@ -55,6 +60,8 @@ def clear_production_http_state():
 @router.post("/fixture-pages")
 def register_fixture_page(
     payload: FixturePageRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     _transport.responses[
         payload.url
@@ -70,6 +77,8 @@ def register_fixture_page(
 @router.post("/execute")
 def execute_multi_page_connector(
     payload: MultiPageExecutionRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _runtime.execute(
         **payload.model_dump()

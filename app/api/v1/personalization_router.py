@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.personalization.personalization_service import PersonalizationService
 
 
@@ -40,12 +42,20 @@ _service = PersonalizationService()
 
 
 @router.post("/profiles")
-async def upsert_profile(payload: UserPreferenceProfileRequest):
+async def upsert_profile(
+    payload: UserPreferenceProfileRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.upsert_profile(payload.model_dump())
 
 
 @router.get("/profiles/{user_id}")
-async def get_profile(user_id: str):
+async def get_profile(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     profile = _service.get_profile(user_id)
     if profile is None:
         raise HTTPException(status_code=404, detail="profile_not_found")
@@ -53,15 +63,26 @@ async def get_profile(user_id: str):
 
 
 @router.post("/score")
-async def score_offers(payload: PersonalizationScoreRequest):
+async def score_offers(
+    payload: PersonalizationScoreRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.score(payload.model_dump())
 
 
 @router.post("/score-cached")
-async def score_offers_cached(payload: CachedPersonalizationScoreRequest):
+async def score_offers_cached(
+    payload: CachedPersonalizationScoreRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.score_cached(payload.model_dump())
 
 
 @router.post("/clear")
-async def clear_personalization():
+async def clear_personalization(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.clear()

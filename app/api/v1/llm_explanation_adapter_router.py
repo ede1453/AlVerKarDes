@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.llm_explanation_adapter.llm_explanation_service import (
     LLMExplanationAdapterService,
 )
@@ -26,5 +28,9 @@ router = APIRouter(prefix="/llm-explanations", tags=["llm-explanations"])
 
 
 @router.post("/prepare")
-async def prepare_llm_explanation(payload: LLMExplanationPrepareRequest):
+async def prepare_llm_explanation(
+    payload: LLMExplanationPrepareRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return LLMExplanationAdapterService().prepare(payload.model_dump())

@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.deal_notifications.operations import (
     DealNotificationOperationsService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/deal-notification-operations",
@@ -66,13 +68,18 @@ class EngagementRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_operations():
+def clear_operations(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.clear()
 
 
 @router.post("/delivery-attempts")
 def record_attempt(
     payload: DeliveryAttemptRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_delivery_attempt(
         **payload.model_dump()
@@ -82,7 +89,11 @@ def record_attempt(
 @router.get(
     "/delivery-attempts/{notification_id}"
 )
-def get_attempts(notification_id: str):
+def get_attempts(
+    notification_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_delivery_attempts(
         notification_id=notification_id
     )
@@ -91,6 +102,8 @@ def get_attempts(notification_id: str):
 @router.post("/idempotency/reserve")
 def reserve_idempotency(
     payload: IdempotencyRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.reserve_idempotency_key(
         **payload.model_dump()
@@ -100,6 +113,8 @@ def reserve_idempotency(
 @router.post("/escalations")
 def create_escalation(
     payload: EscalationRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.create_escalation(
         **payload.model_dump()
@@ -112,6 +127,8 @@ def create_escalation(
 def complete_escalation(
     escalation_id: str,
     payload: EscalationCompleteRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.complete_escalation(
         escalation_id=escalation_id,
@@ -124,6 +141,8 @@ def complete_escalation(
 @router.post("/digests")
 def build_digest(
     payload: DigestRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.build_digest(
         **payload.model_dump()
@@ -133,6 +152,8 @@ def build_digest(
 @router.post("/engagement")
 def record_engagement(
     payload: EngagementRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_engagement(
         **payload.model_dump()
@@ -143,6 +164,8 @@ def record_engagement(
 def get_engagement_metrics(
     user_id: str | None = None,
     channel: str | None = None,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.calculate_engagement_metrics(
         user_id=user_id,

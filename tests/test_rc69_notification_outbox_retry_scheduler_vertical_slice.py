@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -18,9 +19,13 @@ def test_rc69_retry_scheduler_vertical_slice_claim_fail_requeue_claim_again():
             "message": "Claim fail requeue claim again",
             "payload": {"idempotency_key": "rc69-user:vertical"},
         },
+        headers=internal_service_headers(),
     ).json()
 
-    first_claim = client.post("/api/v1/notification-outbox/claim-next").json()
+    first_claim = client.post(
+        "/api/v1/notification-outbox/claim-next",
+        headers=internal_service_headers(),
+    ).json()
     assert first_claim["claimed"] is True
     assert first_claim["item"]["status"] == "PROCESSING"
 
@@ -28,13 +33,20 @@ def test_rc69_retry_scheduler_vertical_slice_claim_fail_requeue_claim_again():
     failed = client.post(
         f"/api/v1/notification-outbox/{queued['id']}/mark-failed",
         json={"error": "PROVIDER_TIMEOUT", "next_retry_at": due_time},
+        headers=internal_service_headers(),
     ).json()
     assert failed["item"]["status"] == "FAILED"
 
-    requeued = client.post("/api/v1/notification-outbox/requeue-due-retries").json()
+    requeued = client.post(
+        "/api/v1/notification-outbox/requeue-due-retries",
+        headers=internal_service_headers(),
+    ).json()
     assert requeued["requeued_count"] == 1
 
-    second_claim = client.post("/api/v1/notification-outbox/claim-next").json()
+    second_claim = client.post(
+        "/api/v1/notification-outbox/claim-next",
+        headers=internal_service_headers(),
+    ).json()
     assert second_claim["claimed"] is True
     assert second_claim["item"]["id"] == queued["id"]
     assert second_claim["item"]["status"] == "PROCESSING"

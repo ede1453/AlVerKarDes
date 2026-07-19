@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.domains.deal_storage.production_readiness import (
     StorageProductionReadinessService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/storage-production-readiness",
@@ -77,7 +79,10 @@ class ReadinessRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_readiness():
+def clear_readiness(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = StorageProductionReadinessService()
     return {"cleared": True}
@@ -86,6 +91,8 @@ def clear_readiness():
 @router.post("/capacity")
 def calculate_capacity(
     payload: CapacityRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.calculate_capacity_plan(
         **payload.model_dump()
@@ -95,6 +102,8 @@ def calculate_capacity(
 @router.post("/encryption-policies")
 def register_encryption_policy(
     payload: EncryptionPolicyRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.register_encryption_policy(
         **payload.model_dump()
@@ -104,6 +113,8 @@ def register_encryption_policy(
 @router.post("/encryption-compliance")
 def evaluate_encryption(
     payload: EncryptionComplianceRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.evaluate_encryption_compliance(
         **payload.model_dump()
@@ -113,6 +124,8 @@ def evaluate_encryption(
 @router.post("/access-events")
 def record_access_event(
     payload: AccessEventRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_access_event(
         **payload.model_dump()
@@ -124,6 +137,8 @@ def query_access_events(
     actor_id: str | None = None,
     allowed: bool | None = None,
     action: str | None = None,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.query_access_events(
         actor_id=actor_id,
@@ -135,6 +150,8 @@ def query_access_events(
 @router.post("/maintenance-windows")
 def register_maintenance_window(
     payload: MaintenanceWindowRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.register_maintenance_window(
         **payload.model_dump()
@@ -144,6 +161,8 @@ def register_maintenance_window(
 @router.post("/maintenance-windows/evaluate")
 def evaluate_maintenance_window(
     payload: OperationWindowRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.evaluate_operation_window(
         **payload.model_dump()
@@ -153,6 +172,8 @@ def evaluate_maintenance_window(
 @router.post("/readiness")
 def evaluate_readiness(
     payload: ReadinessRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.evaluate_production_readiness(
         **payload.model_dump()
@@ -160,7 +181,10 @@ def evaluate_readiness(
 
 
 @router.get("/readiness/latest")
-def get_latest_readiness():
+def get_latest_readiness(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     report = _service.latest_readiness_report()
 
     if report is None:

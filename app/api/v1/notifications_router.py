@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.notifications.notification_service import NotificationService
 
 
@@ -26,10 +27,18 @@ _service = NotificationService()
 
 
 @router.post("/deliver")
-async def deliver_notification(payload: NotificationDeliverRequest):
+async def deliver_notification(
+    payload: NotificationDeliverRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.deliver(payload.model_dump())
 
 
 @router.post("/from-smart-alert")
-async def deliver_notification_from_smart_alert(payload: NotificationFromSmartAlertRequest):
+async def deliver_notification_from_smart_alert(
+    payload: NotificationFromSmartAlertRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.deliver_from_smart_alert(payload.model_dump())

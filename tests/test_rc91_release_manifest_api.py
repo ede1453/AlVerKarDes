@@ -6,6 +6,7 @@ from app.domains.notifications.outbox.outbox_service import (
     NotificationOutboxService,
 )
 from app.main import app
+from tests.auth_test_helpers import release_manager_headers
 
 
 @pytest.fixture(autouse=True)
@@ -18,9 +19,12 @@ client = TestClient(app)
 
 
 def test_rc91_release_manifest_status_api_contract():
-    response = client.get(
-        "/api/v1/notification-outbox/release-manifest"
-    )
+    with TestClient(app) as client:
+        headers = release_manager_headers(client)
+        response = client.get(
+            "/api/v1/notification-outbox/release-manifest",
+            headers=headers,
+        )
 
     assert response.status_code == 200
     data = response.json()
@@ -30,32 +34,36 @@ def test_rc91_release_manifest_status_api_contract():
 
 
 def test_rc91_publish_release_manifest_api_contract():
-    required_checks = [
-        "openapi_contract",
-        "schema_contract",
-        "database_migrations",
-        "runtime_health",
-        "security_review",
-    ]
+    with TestClient(app) as client:
+        headers = release_manager_headers(client)
+        required_checks = [
+            "openapi_contract",
+            "schema_contract",
+            "database_migrations",
+            "runtime_health",
+            "security_review",
+        ]
 
-    for check_name in required_checks:
-        client.post(
-            "/api/v1/notification-outbox/readiness/checks",
+        for check_name in required_checks:
+            client.post(
+                "/api/v1/notification-outbox/readiness/checks",
+                headers=headers,
+                json={
+                    "check_name": check_name,
+                    "passed": True,
+                    "details": "passed",
+                },
+            )
+
+        response = client.post(
+            "/api/v1/notification-outbox/release-manifest/publish",
+            headers=headers,
             json={
-                "check_name": check_name,
-                "passed": True,
-                "details": "passed",
+                "release_version": "v0.6.0",
+                "commit_sha": "abc123",
+                "build_id": "build-91",
             },
         )
-
-    response = client.post(
-        "/api/v1/notification-outbox/release-manifest/publish",
-        json={
-            "release_version": "v0.6.0",
-            "commit_sha": "abc123",
-            "build_id": "build-91",
-        },
-    )
 
     assert response.status_code == 200
     data = response.json()

@@ -27,4 +27,4 @@ def test_marketplace_connector_vertical_slice_to_aggregation():
     )
 
     assert aggregation_response.status_code == 200
-    assert aggregation_response.json()["offer_count"] == 1
+    assert aggregation_response.json()["offer_count"] == 5

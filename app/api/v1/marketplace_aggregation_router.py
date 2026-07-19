@@ -10,7 +10,7 @@ class MarketplaceOfferRequest(BaseModel):
     marketplace: str
     seller: str | None = None
     product_name: str
-    price: str
+    price: float | str
     currency: str = "EUR"
     url: str | None = None
     availability: str = "UNKNOWN"

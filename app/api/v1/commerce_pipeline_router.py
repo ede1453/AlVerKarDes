@@ -1,11 +1,12 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.domains.commerce_pipeline.service import (
     CommercePipelineService,
 )
+from app.domains.identity.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/commerce-pipeline",
@@ -29,7 +30,7 @@ class PipelineRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_pipeline():
+def clear_pipeline(current_user=Depends(get_current_user)):
     global _service
     _service = CommercePipelineService()
     return {"cleared": True}
@@ -38,6 +39,7 @@ def clear_pipeline():
 @router.post("/run")
 def run_pipeline(
     payload: PipelineRequest,
+    current_user=Depends(get_current_user),
 ):
     return _service.run_pipeline(
         **payload.model_dump()
@@ -45,12 +47,12 @@ def run_pipeline(
 
 
 @router.get("/runs")
-def list_runs():
+def list_runs(current_user=Depends(get_current_user)):
     return _service.list_runs()
 
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str):
+def get_run(run_id: str, current_user=Depends(get_current_user)):
     run = _service.get_run(run_id)
 
     if run is None:

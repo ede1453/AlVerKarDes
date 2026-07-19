@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -16,13 +17,18 @@ def test_rc70_mark_failed_api_calculates_backoff_when_next_retry_at_missing():
             "message": "Backoff API",
             "payload": {"source": "rc70"},
         },
+        headers=internal_service_headers(),
     ).json()
 
-    client.post("/api/v1/notification-outbox/claim-next")
+    client.post(
+        "/api/v1/notification-outbox/claim-next",
+        headers=internal_service_headers(),
+    )
 
     response = client.post(
         f"/api/v1/notification-outbox/{queued['id']}/mark-failed",
         json={"error": "PROVIDER_TIMEOUT"},
+        headers=internal_service_headers(),
     )
 
     assert response.status_code == 200
@@ -44,9 +50,13 @@ def test_rc70_mark_failed_api_preserves_explicit_next_retry_at():
             "title": "RC70 API",
             "message": "Explicit next retry",
         },
+        headers=internal_service_headers(),
     ).json()
 
-    client.post("/api/v1/notification-outbox/claim-next")
+    client.post(
+        "/api/v1/notification-outbox/claim-next",
+        headers=internal_service_headers(),
+    )
 
     response = client.post(
         f"/api/v1/notification-outbox/{queued['id']}/mark-failed",
@@ -54,6 +64,7 @@ def test_rc70_mark_failed_api_preserves_explicit_next_retry_at():
             "error": "PROVIDER_TIMEOUT",
             "next_retry_at": "2000-01-01T00:00:00+00:00",
         },
+        headers=internal_service_headers(),
     )
 
     assert response.status_code == 200

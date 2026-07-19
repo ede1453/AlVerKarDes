@@ -1,37 +1,49 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import auth_headers_and_user_id, internal_service_headers
 
 
 def test_rc80_vertical_slice_digest_only_pending_user_items():
-    client.post("/api/v1/notification-outbox/clear")
+    with TestClient(app) as client:
+        headers, user_id = auth_headers_and_user_id(client)
 
-    pending = client.post(
-        "/api/v1/notification-outbox/enqueue",
-        json={
-            "user_id": "rc80-user",
-            "title": "Pending",
-            "message": "Digest pending",
-            "payload": {"source": "rc80"},
-        },
-    ).json()
+        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
-    delivered = client.post(
-        "/api/v1/notification-outbox/enqueue",
-        json={
-            "user_id": "rc80-user",
-            "title": "Delivered",
-            "message": "Should not be in digest",
-            "payload": {"source": "rc80"},
-        },
-    ).json()
+        pending = client.post(
+            "/api/v1/notification-outbox/enqueue",
+            headers={**internal_service_headers(), **headers},
+            json={
+                "user_id": user_id,
+                "title": "Pending",
+                "message": "Digest pending",
+                "payload": {"source": "rc80"},
+            },
+        ).json()
 
-    client.post("/api/v1/notification-outbox/claim-next")
-    client.post(f"/api/v1/notification-outbox/{pending['id']}/mark-delivered")
+        delivered = client.post(
+            "/api/v1/notification-outbox/enqueue",
+            headers={**internal_service_headers(), **headers},
+            json={
+                "user_id": user_id,
+                "title": "Delivered",
+                "message": "Should not be in digest",
+                "payload": {"source": "rc80"},
+            },
+        ).json()
 
-    digest = client.get("/api/v1/notification-outbox/digest/rc80-user").json()
+        client.post(
+            "/api/v1/notification-outbox/claim-next",
+            headers={**internal_service_headers(), **headers},
+        )
+        client.post(
+            f"/api/v1/notification-outbox/{pending['id']}/mark-delivered",
+            headers={**internal_service_headers(), **headers},
+        )
+
+        digest = client.get(
+            f"/api/v1/notification-outbox/digest/{user_id}", headers=headers
+        ).json()
 
     assert digest["item_count"] == 1
     assert digest["items"][0]["id"] == delivered["id"]

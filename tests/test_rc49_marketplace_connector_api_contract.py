@@ -27,7 +27,8 @@ def test_marketplace_connector_search_api_mock():
 
     assert response.status_code == 200
     assert response.json()["status"] == "COMPLETED"
-    assert response.json()["offer_count"] == 1
+    assert response.json()["offer_count"] == 5
+    assert len(response.json()["offers"]) == 5
 
 
 def test_marketplace_connector_search_api_external_boundary():

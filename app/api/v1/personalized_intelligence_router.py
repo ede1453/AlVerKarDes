@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.personalized_intelligence.personalized_intelligence_service import (
     PersonalizedIntelligenceService,
 )
@@ -33,12 +34,20 @@ _service = PersonalizedIntelligenceService()
 
 
 @router.post("/profiles")
-async def save_user_preference_profile(payload: UserPreferenceProfileRequest):
+async def save_user_preference_profile(
+    payload: UserPreferenceProfileRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return await _service.save_profile(payload.model_dump())
 
 
 @router.get("/profiles/{user_id}")
-async def get_user_preference_profile(user_id: str):
+async def get_user_preference_profile(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     result = await _service.get_profile(user_id)
     if result is None:
         raise HTTPException(status_code=404, detail="user_preference_profile_not_found")
@@ -46,5 +55,9 @@ async def get_user_preference_profile(user_id: str):
 
 
 @router.post("/decisions/personalize")
-async def personalize_decision(payload: PersonalizeDecisionRequest):
+async def personalize_decision(
+    payload: PersonalizeDecisionRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return await _service.personalize_decision(payload.model_dump())

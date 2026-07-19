@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_observability_snapshot_get_api_returns_metrics():
-    response = client.get("/api/v1/observability/snapshot")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.get("/api/v1/observability/snapshot", headers=headers)
 
     assert response.status_code == 200
 
@@ -18,15 +19,18 @@ def test_observability_snapshot_get_api_returns_metrics():
 
 
 def test_observability_snapshot_post_api_accepts_provider_scope():
-    response = client.post(
-        "/api/v1/observability/snapshot",
-        json={
-            "providers": ["mock"],
-            "preferred_provider": "mock",
-            "fallback_providers": [],
-            "prompt_version": "shopping_v1",
-        },
-    )
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.post(
+            "/api/v1/observability/snapshot",
+            headers=headers,
+            json={
+                "providers": ["mock"],
+                "preferred_provider": "mock",
+                "fallback_providers": [],
+                "prompt_version": "shopping_v1",
+            },
+        )
 
     assert response.status_code == 200
     assert response.json()["status"] == "HEALTHY"

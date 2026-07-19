@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.ai_shopping_agent.agent_service import AIShoppingAgentService
+from app.domains.identity.dependencies import get_current_user
 
 
 class AgentOfferRequest(BaseModel):
@@ -42,10 +43,16 @@ _service = AIShoppingAgentService()
 
 
 @router.post("/run")
-async def run_ai_shopping_agent(payload: AgentRunRequest):
+async def run_ai_shopping_agent(
+    payload: AgentRunRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.run(payload.model_dump())
 
 
 @router.post("/run-cached")
-async def run_ai_shopping_agent_cached(payload: CachedAgentRunRequest):
+async def run_ai_shopping_agent_cached(
+    payload: CachedAgentRunRequest,
+    current_user=Depends(get_current_user),
+):
     return _service.run_cached(payload.model_dump())

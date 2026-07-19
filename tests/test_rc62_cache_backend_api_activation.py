@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_rc62_cache_status_endpoint_still_available():
-    response = client.get("/api/v1/cache/status")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.get("/api/v1/cache/status", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -16,22 +17,26 @@ def test_rc62_cache_status_endpoint_still_available():
 
 
 def test_rc62_cache_set_get_endpoint_contract_still_works():
-    set_response = client.post(
-        "/api/v1/cache/set",
-        json={
-            "key": "rc62:api:cache",
-            "value": {"status": "ok"},
-            "ttl_seconds": 60,
-        },
-    )
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        set_response = client.post(
+            "/api/v1/cache/set",
+            headers=headers,
+            json={
+                "key": "rc62:api:cache",
+                "value": {"status": "ok"},
+                "ttl_seconds": 60,
+            },
+        )
 
-    assert set_response.status_code == 200
-    assert set_response.json()["key"] == "rc62:api:cache"
+        assert set_response.status_code == 200
+        assert set_response.json()["key"] == "rc62:api:cache"
 
-    get_response = client.post(
-        "/api/v1/cache/get",
-        json={"key": "rc62:api:cache"},
-    )
+        get_response = client.post(
+            "/api/v1/cache/get",
+            headers=headers,
+            json={"key": "rc62:api:cache"},
+        )
 
     assert get_response.status_code == 200
     data = get_response.json()

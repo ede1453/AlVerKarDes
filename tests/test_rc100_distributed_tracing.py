@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import operator_headers
 
 client = TestClient(app)
 
@@ -23,19 +24,22 @@ def test_rc100_incoming_trace_id_is_preserved():
 
 
 def test_rc100_trace_can_be_read_from_api():
-    response = client.get(
-        "/health",
-        headers={
-            "X-Trace-ID": "trace-readable-rc100",
-            "X-Correlation-ID": "corr-readable-rc100",
-        },
-    )
+    with TestClient(app) as scoped_client:
+        headers = operator_headers(scoped_client)
+        response = scoped_client.get(
+            "/health",
+            headers={
+                "X-Trace-ID": "trace-readable-rc100",
+                "X-Correlation-ID": "corr-readable-rc100",
+            },
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
-    trace_response = client.get(
-        "/api/v1/observability/traces/trace-readable-rc100"
-    )
+        trace_response = scoped_client.get(
+            "/api/v1/observability/traces/trace-readable-rc100",
+            headers=headers,
+        )
 
     assert trace_response.status_code == 200
     trace = trace_response.json()["trace"]

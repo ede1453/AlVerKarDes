@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.smart_alerts.smart_alert_service import SmartAlertService
 
 
@@ -23,10 +24,22 @@ _service = SmartAlertService()
 
 
 @router.post("/evaluate")
-async def evaluate_smart_alert(payload: SmartAlertEvaluateRequest):
+async def evaluate_smart_alert(
+    payload: SmartAlertEvaluateRequest,
+    current_user=Depends(get_current_user),
+):
+    if payload.user_id is None:
+        payload.user_id = str(current_user.id)
+    ensure_owner(current_user, payload.user_id)
     return _service.evaluate(payload.model_dump())
 
 
 @router.post("/evaluate-cached")
-async def evaluate_smart_alert_cached(payload: CachedSmartAlertEvaluateRequest):
+async def evaluate_smart_alert_cached(
+    payload: CachedSmartAlertEvaluateRequest,
+    current_user=Depends(get_current_user),
+):
+    if payload.user_id is None:
+        payload.user_id = str(current_user.id)
+    ensure_owner(current_user, payload.user_id)
     return _service.evaluate_cached(payload.model_dump())

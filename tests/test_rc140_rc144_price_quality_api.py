@@ -1,12 +1,14 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import auth_headers
 
 def test_rc140_rc144_vertical_slice():
-    response = client.post(
+    with TestClient(app) as client:
+        headers = auth_headers(client)
+        response = client.post(
         "/api/v1/price-quality/pipeline",
+        headers=headers,
         json={
             "target_currency":"EUR",
             "exchange_rates":{"USD_EUR":0.92},

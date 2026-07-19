@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.domains.analytics.recommendation_intelligence_engine import (
@@ -8,6 +8,7 @@ from app.domains.analytics.recommendation_intelligence_engine import (
 from app.domains.analytics.recommendation_intelligence_serializer import (
     serialize_recommendation_intelligence,
 )
+from app.domains.identity.dependencies import get_current_user
 
 
 class RecommendationIntelligenceRequest(BaseModel):
@@ -22,7 +23,11 @@ router = APIRouter(prefix="/recommendations/intelligence", tags=["recommendation
 
 
 @router.post("/evaluate")
-async def evaluate_recommendation_intelligence(payload: RecommendationIntelligenceRequest):
+async def evaluate_recommendation_intelligence(
+    payload: RecommendationIntelligenceRequest,
+    # AUTH-006 Parça 2: OWNER_ONLY'den AUTHENTICATED'e KALICI olarak yeniden sınıflandırıldı — servis kodunda user_id parametresi hiç yok, durumsuz bir hesaplayıcı (bkz. ADR-005).
+    current_user=Depends(get_current_user),
+):
     result = RecommendationIntelligenceEngine().evaluate(
         RecommendationIntelligenceInput(
             deal_score=payload.deal_score,

@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.deal_storage.operations_runtime import (
     StorageOperationsRuntime,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/deal-storage-operations",
@@ -64,27 +66,39 @@ class NotificationBridgeRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_operations():
+def clear_operations(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = StorageOperationsRuntime()
     return {"cleared": True}
 
 
 @router.post("/worker/run")
-def run_worker(payload: WorkerRunRequest):
+def run_worker(
+    payload: WorkerRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.run_outbox_worker(
         **payload.model_dump()
     )
 
 
 @router.get("/worker/runs")
-def list_worker_runs():
+def list_worker_runs(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.list_worker_runs()
 
 
 @router.post("/backup-schedules")
 def register_backup_schedule(
     payload: BackupScheduleRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.register_backup_schedule(
         **payload.model_dump()
@@ -97,6 +111,8 @@ def register_backup_schedule(
 def run_backup_schedule(
     schedule_id: str,
     payload: BackupRunRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.run_backup_schedule(
         schedule_id=schedule_id,
@@ -107,6 +123,8 @@ def run_backup_schedule(
 @router.post("/restore-drills")
 def run_restore_drill(
     payload: RestoreDrillRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.run_restore_drill(
         **payload.model_dump()
@@ -116,6 +134,8 @@ def run_restore_drill(
 @router.post("/health-dashboard")
 def build_health_dashboard(
     payload: DashboardRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.build_health_dashboard(
         **payload.model_dump()
@@ -125,6 +145,8 @@ def build_health_dashboard(
 @router.post("/notification-bridge")
 def build_notifications(
     payload: NotificationBridgeRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.build_storage_notifications(
         **payload.model_dump()
@@ -132,5 +154,8 @@ def build_notifications(
 
 
 @router.get("/notifications")
-def list_notifications():
+def list_notifications(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.list_notifications()

@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.domains.deal_operations.service import (
     DealDecisionOperationsService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/deal-operations",
@@ -30,7 +32,10 @@ class WatchlistRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_deal_operations():
+def clear_deal_operations(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = DealDecisionOperationsService()
     return {"cleared": True}
@@ -39,6 +44,8 @@ def clear_deal_operations():
 @router.post("/watchlist")
 def add_watchlist_item(
     payload: WatchlistRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.repository.add_watchlist_item(
         **payload.model_dump()
@@ -49,6 +56,8 @@ def add_watchlist_item(
 def list_watchlist(
     user_id: str | None = None,
     active: bool | None = None,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     items = _service.repository.list_watchlist(
         user_id=user_id,
@@ -64,6 +73,8 @@ def list_watchlist(
 @router.post("/evaluate")
 def evaluate_and_store(
     payload: EvaluateRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.evaluate_and_store(
         opportunities=payload.opportunities,
@@ -76,6 +87,8 @@ def evaluate_and_store(
 )
 def get_opportunity(
     opportunity_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     opportunity = (
         _service.repository.get_opportunity(
@@ -97,6 +110,8 @@ def get_opportunity(
 )
 def get_decision_history(
     opportunity_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     decisions = (
         _service.repository.get_decision_history(

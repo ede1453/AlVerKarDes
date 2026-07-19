@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import internal_service_headers
 
 client = TestClient(app)
 
@@ -13,21 +14,27 @@ def test_provider_scheduler_api_create_get_run_once():
             "providers": ["mock"],
             "interval_seconds": 30,
         },
+        headers=internal_service_headers(),
     )
 
     assert response.status_code == 200
     schedule = response.json()
 
-    get_response = client.get(f"/api/v1/provider-schedules/{schedule['id']}")
+    get_response = client.get(
+        f"/api/v1/provider-schedules/{schedule['id']}", headers=internal_service_headers()
+    )
     assert get_response.status_code == 200
 
-    run_response = client.post(f"/api/v1/provider-schedules/{schedule['id']}/run-once")
+    run_response = client.post(
+        f"/api/v1/provider-schedules/{schedule['id']}/run-once",
+        headers=internal_service_headers(),
+    )
     assert run_response.status_code == 200
     assert run_response.json()["result"]["status"] == "HEALTHY"
 
 
 def test_provider_scheduler_api_list():
-    response = client.get("/api/v1/provider-schedules")
+    response = client.get("/api/v1/provider-schedules", headers=internal_service_headers())
 
     assert response.status_code == 200
     assert "items" in response.json()

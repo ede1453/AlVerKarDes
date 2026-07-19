@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.domains.products.post_merge_repository import PostMergeVerificationRepository
 from app.domains.products.post_merge_verifier import PostMergeVerifier
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(prefix="/products/merge", tags=["products-merge"])
 
@@ -15,7 +17,12 @@ class VerifyMergeRequest(BaseModel):
 
 
 @router.post("/verify")
-async def verify_merge(payload: VerifyMergeRequest, db: AsyncSession = Depends(get_db)):
+async def verify_merge(
+    payload: VerifyMergeRequest,
+    db: AsyncSession = Depends(get_db),
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     repo = PostMergeVerificationRepository(db)
     result = await PostMergeVerifier().verify(
         repo=repo,

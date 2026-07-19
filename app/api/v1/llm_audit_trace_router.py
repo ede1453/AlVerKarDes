@@ -6,6 +6,8 @@ try:
 except Exception:  # pragma: no cover - compatibility for older app layouts
     get_db = None
 
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.llm_audit_trace.llm_audit_service import LLMAuditTraceService
 
 
@@ -34,7 +36,11 @@ def _db_dependency():
 
 
 @router.post("")
-async def create_llm_audit_trace(payload: LLMAuditTraceCreateRequest):
+async def create_llm_audit_trace(
+    payload: LLMAuditTraceCreateRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return await _in_memory_service.create_from_gateway_payload(
         request_payload=payload.request_payload,
         gateway_response=payload.gateway_response,
@@ -42,7 +48,11 @@ async def create_llm_audit_trace(payload: LLMAuditTraceCreateRequest):
 
 
 @router.get("")
-async def list_llm_audit_traces(limit: int = Query(default=20, ge=1, le=100)):
+async def list_llm_audit_traces(
+    limit: int = Query(default=20, ge=1, le=100),
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return {
         "items": await _in_memory_service.list_recent(limit=limit),
         "limit": limit,
@@ -50,7 +60,11 @@ async def list_llm_audit_traces(limit: int = Query(default=20, ge=1, le=100)):
 
 
 @router.get("/{trace_id}")
-async def get_llm_audit_trace(trace_id: str):
+async def get_llm_audit_trace(
+    trace_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     result = await _in_memory_service.get(trace_id)
     if result is None:
         raise HTTPException(status_code=404, detail="llm_audit_trace_not_found")
@@ -62,6 +76,8 @@ if get_db is not None:
     async def create_llm_audit_trace_db(
         payload: LLMAuditTraceCreateRequest,
         db=Depends(get_db),
+        # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+        current_user=Depends(require_role(UserRole.OPERATOR)),
     ):
         service = _service_for_db(db)
         return await service.create_from_gateway_payload(
@@ -74,6 +90,8 @@ if get_db is not None:
     async def list_llm_audit_traces_db(
         limit: int = Query(default=20, ge=1, le=100),
         db=Depends(get_db),
+        # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+        current_user=Depends(require_role(UserRole.OPERATOR)),
     ):
         service = _service_for_db(db)
         return {
@@ -86,6 +104,8 @@ if get_db is not None:
     async def get_llm_audit_trace_db(
         trace_id: str,
         db=Depends(get_db),
+        # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+        current_user=Depends(require_role(UserRole.OPERATOR)),
     ):
         service = _service_for_db(db)
         result = await service.get(trace_id)

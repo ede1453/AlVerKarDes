@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.domains.deal_storage.resilience import (
     DealStorageResilienceService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/deal-storage-resilience",
@@ -52,14 +54,21 @@ class HealthSampleRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_resilience():
+def clear_resilience(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = DealStorageResilienceService()
     return {"cleared": True}
 
 
 @router.post("/outbox")
-def enqueue_outbox(payload: EnqueueRequest):
+def enqueue_outbox(
+    payload: EnqueueRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.enqueue_outbox(
         **payload.model_dump()
     )
@@ -69,6 +78,8 @@ def enqueue_outbox(payload: EnqueueRequest):
 def claim_outbox(
     limit: int = 100,
     at_time: str | None = None,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.claim_publish_batch(
         limit=limit,
@@ -77,7 +88,11 @@ def claim_outbox(
 
 
 @router.post("/outbox/{event_id}/published")
-def mark_published(event_id: str):
+def mark_published(
+    event_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.mark_published(
         event_id
     )
@@ -87,6 +102,8 @@ def mark_published(event_id: str):
 def mark_failed(
     event_id: str,
     payload: PublishFailureRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.mark_publish_failed(
         event_id=event_id,
@@ -99,6 +116,8 @@ def mark_failed(
 )
 def replay_dead_letter(
     dead_letter_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.replay_dead_letter(
         dead_letter_id
@@ -108,6 +127,8 @@ def replay_dead_letter(
 @router.post("/backup-exports")
 def create_backup_export(
     payload: BackupExportRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.create_backup_export(
         **payload.model_dump()
@@ -117,7 +138,11 @@ def create_backup_export(
 @router.get(
     "/backup-exports/{export_id}"
 )
-def get_backup_export(export_id: str):
+def get_backup_export(
+    export_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     export = _service.get_backup_export(
         export_id
     )
@@ -137,6 +162,8 @@ def get_backup_export(export_id: str):
 def validate_restore(
     export_id: str,
     payload: RestoreValidationRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.validate_restore(
         export_id=export_id,
@@ -149,6 +176,8 @@ def validate_restore(
 @router.post("/health")
 def record_health(
     payload: HealthSampleRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_health_sample(
         **payload.model_dump()
@@ -156,7 +185,10 @@ def record_health(
 
 
 @router.get("/health/latest")
-def get_latest_health():
+def get_latest_health(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     sample = _service.latest_health()
 
     if sample is None:

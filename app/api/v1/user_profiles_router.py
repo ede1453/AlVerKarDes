@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.user_profiles.user_profile_service import UserProfileService
 
 
@@ -23,25 +25,44 @@ _service = UserProfileService()
 
 
 @router.get("/{user_id}")
-async def get_user_profile(user_id: str):
+async def get_user_profile(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.get_profile(user_id)
 
 
 @router.post("/preferences")
-async def apply_user_profile_preferences(payload: UserProfilePreferencesRequest):
+async def apply_user_profile_preferences(
+    payload: UserProfilePreferencesRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.apply_preferences(payload.model_dump())
 
 
 @router.post("/feedback/merge")
-async def merge_user_profile_feedback(payload: UserProfileFeedbackMergeRequest):
+async def merge_user_profile_feedback(
+    payload: UserProfileFeedbackMergeRequest,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload.user_id)
     return _service.merge_feedback(payload.model_dump())
 
 
 @router.get("/{user_id}/recommendation-context")
-async def get_user_profile_recommendation_context(user_id: str):
+async def get_user_profile_recommendation_context(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.recommendation_context(user_id)
 
 
 @router.post("/clear")
-async def clear_user_profiles():
+async def clear_user_profiles(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.clear()

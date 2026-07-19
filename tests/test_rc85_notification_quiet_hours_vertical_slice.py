@@ -1,30 +1,34 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import auth_headers_and_user_id
 
 
 def test_rc85_vertical_slice_block_then_allow():
-    blocked = client.get(
-        "/api/v1/notification-outbox/quiet-hours/rc85-user",
-        params={
-            "current_hour": 2,
-            "start_hour": 22,
-            "end_hour": 8,
-            "enabled": True,
-        },
-    ).json()
+    with TestClient(app) as client:
+        headers, user_id = auth_headers_and_user_id(client)
 
-    allowed = client.get(
-        "/api/v1/notification-outbox/quiet-hours/rc85-user",
-        params={
-            "current_hour": 10,
-            "start_hour": 22,
-            "end_hour": 8,
-            "enabled": True,
-        },
-    ).json()
+        blocked = client.get(
+            f"/api/v1/notification-outbox/quiet-hours/{user_id}",
+            headers=headers,
+            params={
+                "current_hour": 2,
+                "start_hour": 22,
+                "end_hour": 8,
+                "enabled": True,
+            },
+        ).json()
+
+        allowed = client.get(
+            f"/api/v1/notification-outbox/quiet-hours/{user_id}",
+            headers=headers,
+            params={
+                "current_hour": 10,
+                "start_hour": 22,
+                "end_hour": 8,
+                "enabled": True,
+            },
+        ).json()
 
     assert blocked["allowed"] is False
     assert blocked["reason"] == "QUIET_HOURS_ACTIVE"

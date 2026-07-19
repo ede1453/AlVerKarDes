@@ -1,18 +1,20 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_rate_limit_api_returns_check_result():
-    response = client.post(
-        "/api/v1/rate-limits/check",
-        json={
-            "key": "test-user",
-            "scope": "llm_gateway",
-        },
-    )
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.post(
+            "/api/v1/rate-limits/check",
+            headers=headers,
+            json={
+                "key": "test-user",
+                "scope": "llm_gateway",
+            },
+        )
 
     assert response.status_code == 200
 

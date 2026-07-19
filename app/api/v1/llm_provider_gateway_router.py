@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.llm_provider_gateway.llm_provider_gateway_service import (
     LLMProviderGatewayService,
 )
@@ -23,12 +25,19 @@ router = APIRouter(prefix="/llm-gateway", tags=["llm-gateway"])
 
 
 @router.post("/generate")
-async def generate_with_llm_gateway(payload: LLMGatewayGenerateRequest):
+async def generate_with_llm_gateway(
+    payload: LLMGatewayGenerateRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return LLMProviderGatewayService().generate(payload.model_dump())
 
 
 @router.get("/providers")
-async def list_llm_gateway_providers():
+async def list_llm_gateway_providers(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return {
         "providers": LLMProviderRegistry().describe(),
         "default_provider": "mock",

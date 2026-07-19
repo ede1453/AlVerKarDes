@@ -6,6 +6,7 @@ from app.domains.notifications.outbox.outbox_service import (
     NotificationOutboxService,
 )
 from app.main import app
+from tests.auth_test_helpers import release_manager_headers
 
 client = TestClient(app)
 
@@ -18,14 +19,17 @@ def reset_notification_outbox_service():
 
 
 def test_rc94_record_release_audit_event_api_contract():
-    response = client.post(
-        "/api/v1/notification-outbox/release-audit/events",
-        json={
-            "event_type": "RELEASE_PUBLISHED",
-            "actor": "admin",
-            "details": {"release_version": "v0.6.0"},
-        },
-    )
+    with TestClient(app) as scoped_client:
+        headers = release_manager_headers(scoped_client)
+        response = scoped_client.post(
+            "/api/v1/notification-outbox/release-audit/events",
+            headers=headers,
+            json={
+                "event_type": "RELEASE_PUBLISHED",
+                "actor": "admin",
+                "details": {"release_version": "v0.6.0"},
+            },
+        )
 
     assert response.status_code == 200
     data = response.json()
@@ -35,18 +39,22 @@ def test_rc94_record_release_audit_event_api_contract():
 
 
 def test_rc94_get_release_audit_trail_api_contract():
-    client.post(
-        "/api/v1/notification-outbox/release-audit/events",
-        json={
-            "event_type": "RELEASE_PROMOTED",
-            "actor": "operator",
-            "details": {"environment": "staging"},
-        },
-    )
+    with TestClient(app) as scoped_client:
+        headers = release_manager_headers(scoped_client)
+        scoped_client.post(
+            "/api/v1/notification-outbox/release-audit/events",
+            headers=headers,
+            json={
+                "event_type": "RELEASE_PROMOTED",
+                "actor": "operator",
+                "details": {"environment": "staging"},
+            },
+        )
 
-    response = client.get(
-        "/api/v1/notification-outbox/release-audit/events"
-    )
+        response = scoped_client.get(
+            "/api/v1/notification-outbox/release-audit/events",
+            headers=headers,
+        )
 
     assert response.status_code == 200
     data = response.json()

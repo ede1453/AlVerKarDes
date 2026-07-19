@@ -1,9 +1,11 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.observability import observability_state
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.observability.metrics_service import (
     ObservabilityMetricsService,
 )
@@ -45,13 +47,18 @@ class AuditEventRequest(BaseModel):
 
 
 @router.get("/snapshot")
-async def get_observability_snapshot():
+async def get_observability_snapshot(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return ObservabilityMetricsService().snapshot({})
 
 
 @router.post("/snapshot")
 async def create_observability_snapshot(
     payload: ObservabilitySnapshotRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return ObservabilityMetricsService().snapshot(
         payload.model_dump()
@@ -59,7 +66,10 @@ async def create_observability_snapshot(
 
 
 @router.post("/clear")
-def clear_observability_state():
+def clear_observability_state(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     observability_state.clear()
     return {
         "cleared": True,
@@ -70,7 +80,11 @@ def clear_observability_state():
 
 
 @router.get("/traces/{trace_id}")
-def get_trace(trace_id: str):
+def get_trace(
+    trace_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     trace = observability_state.get_trace(trace_id)
 
     if trace is None:
@@ -88,7 +102,11 @@ def get_trace(trace_id: str):
 
 
 @router.post("/logs")
-def create_structured_log(payload: StructuredLogRequest):
+def create_structured_log(
+    payload: StructuredLogRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     log = observability_state.add_log(
         level=payload.level,
         event=payload.event,
@@ -113,6 +131,8 @@ def list_structured_logs(
     trace_id: str | None = None,
     level: str | None = None,
     limit: int = 100,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     logs = observability_state.list_logs(
         correlation_id=correlation_id,
@@ -131,7 +151,11 @@ def list_structured_logs(
 
 
 @router.get("/timelines/{correlation_id}")
-def get_request_timeline(correlation_id: str):
+def get_request_timeline(
+    correlation_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     events = observability_state.get_timeline(
         correlation_id
     )
@@ -147,7 +171,11 @@ def get_request_timeline(correlation_id: str):
 
 
 @router.post("/audit-events")
-def create_audit_event(payload: AuditEventRequest):
+def create_audit_event(
+    payload: AuditEventRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     event = observability_state.add_audit_event(
         event_type=payload.event_type,
         actor=payload.actor,
@@ -173,6 +201,8 @@ def list_audit_events(
     actor: str | None = None,
     correlation_id: str | None = None,
     limit: int = 100,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     events = observability_state.list_audit_events(
         event_type=event_type,

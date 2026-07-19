@@ -1,9 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.consumer_intelligence.consumer_intelligence_service import (
     ConsumerIntelligenceService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 
 class ConsumerIntelligenceRequest(BaseModel):
@@ -21,5 +23,9 @@ router = APIRouter(prefix="/consumer-intelligence", tags=["consumer-intelligence
 
 
 @router.post("/evaluate")
-async def evaluate_consumer_intelligence(payload: ConsumerIntelligenceRequest):
+async def evaluate_consumer_intelligence(
+    payload: ConsumerIntelligenceRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return ConsumerIntelligenceService().evaluate(payload.model_dump())

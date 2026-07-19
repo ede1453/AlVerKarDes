@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.domains.deal_storage.reliability_governance import (
     StorageReliabilityGovernanceService,
 )
+from app.domains.identity.dependencies import get_current_user, require_role
+from app.domains.identity.models import UserRole
 
 router = APIRouter(
     prefix="/storage-reliability",
@@ -73,14 +75,21 @@ class SLOSampleRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_reliability():
+def clear_reliability(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     global _service
     _service = StorageReliabilityGovernanceService()
     return {"cleared": True}
 
 
 @router.post("/worker-leases")
-def acquire_lease(payload: LeaseRequest):
+def acquire_lease(
+    payload: LeaseRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.acquire_worker_lease(
         **payload.model_dump()
     )
@@ -89,7 +98,11 @@ def acquire_lease(payload: LeaseRequest):
 @router.post(
     "/worker-leases/{worker_id}/heartbeat"
 )
-def heartbeat(worker_id: str):
+def heartbeat(
+    worker_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.heartbeat_worker(
         worker_id=worker_id
     )
@@ -98,7 +111,11 @@ def heartbeat(worker_id: str):
 @router.post(
     "/worker-leases/{worker_id}/release"
 )
-def release(worker_id: str):
+def release(
+    worker_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.release_worker_lease(
         worker_id=worker_id
     )
@@ -107,6 +124,8 @@ def release(worker_id: str):
 @router.post("/backups")
 def register_backup(
     payload: BackupRegistrationRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.register_backup(
         **payload.model_dump()
@@ -116,6 +135,8 @@ def register_backup(
 @router.post("/backups/retention-evaluate")
 def evaluate_retention(
     payload: RetentionRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.evaluate_backup_retention(
         **payload.model_dump()
@@ -125,6 +146,8 @@ def evaluate_retention(
 @router.post("/restore-approvals")
 def request_restore(
     payload: RestoreApprovalRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.request_restore_approval(
         **payload.model_dump()
@@ -137,6 +160,8 @@ def request_restore(
 def decide_restore(
     approval_id: str,
     payload: RestoreDecisionRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.decide_restore_approval(
         approval_id=approval_id,
@@ -149,6 +174,8 @@ def decide_restore(
 )
 def can_execute_restore(
     approval_id: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.can_execute_restore(
         approval_id=approval_id
@@ -156,7 +183,11 @@ def can_execute_restore(
 
 
 @router.post("/dr-plans")
-def create_dr_plan(payload: DRPlanRequest):
+def create_dr_plan(
+    payload: DRPlanRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.create_disaster_recovery_plan(
         **payload.model_dump()
     )
@@ -166,6 +197,8 @@ def create_dr_plan(payload: DRPlanRequest):
 def record_dr_test(
     plan_id: str,
     payload: DRTestRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_disaster_recovery_test(
         plan_id=plan_id,
@@ -176,6 +209,8 @@ def record_dr_test(
 @router.post("/slo-samples")
 def record_slo_sample(
     payload: SLOSampleRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.record_slo_sample(
         **payload.model_dump()
@@ -183,7 +218,10 @@ def record_slo_sample(
 
 
 @router.get("/slo-samples/latest")
-def get_latest_slo():
+def get_latest_slo(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     sample = _service.latest_slo()
 
     if sample is None:

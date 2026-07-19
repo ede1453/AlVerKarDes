@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.explainability.explanation_service import ExplanationService
+from app.domains.identity.dependencies import get_current_user
 
 
 class ExplanationRequest(BaseModel):
@@ -19,5 +20,8 @@ router = APIRouter(prefix="/explanations", tags=["explanations"])
 
 
 @router.post("/generate")
-async def generate_explanation(payload: ExplanationRequest):
+async def generate_explanation(
+    payload: ExplanationRequest,
+    current_user=Depends(get_current_user),
+):
     return ExplanationService().explain(payload.model_dump())

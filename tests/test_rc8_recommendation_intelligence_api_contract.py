@@ -1,21 +1,23 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import auth_headers
 
 
 def test_recommendation_intelligence_api_returns_explainable_buy_now():
-    response = client.post(
-        "/api/v1/recommendations/intelligence/evaluate",
-        json={
-            "deal_score": 95,
-            "authenticity_score": 96,
-            "trend_direction": "DOWN",
-            "store_trust_score": 90,
-            "stock_status": "in_stock",
-        },
-    )
+    with TestClient(app) as client:
+        headers = auth_headers(client)
+        response = client.post(
+            "/api/v1/recommendations/intelligence/evaluate",
+            headers=headers,
+            json={
+                "deal_score": 95,
+                "authenticity_score": 96,
+                "trend_direction": "DOWN",
+                "store_trust_score": 90,
+                "stock_status": "in_stock",
+            },
+        )
 
     assert response.status_code == 200
 
@@ -29,16 +31,19 @@ def test_recommendation_intelligence_api_returns_explainable_buy_now():
 
 
 def test_recommendation_intelligence_api_returns_avoid_for_fake_discount():
-    response = client.post(
-        "/api/v1/recommendations/intelligence/evaluate",
-        json={
-            "deal_score": 98,
-            "authenticity_score": 20,
-            "trend_direction": "DOWN",
-            "store_trust_score": 95,
-            "stock_status": "in_stock",
-        },
-    )
+    with TestClient(app) as client:
+        headers = auth_headers(client)
+        response = client.post(
+            "/api/v1/recommendations/intelligence/evaluate",
+            headers=headers,
+            json={
+                "deal_score": 98,
+                "authenticity_score": 20,
+                "trend_direction": "DOWN",
+                "store_trust_score": 95,
+                "stock_status": "in_stock",
+            },
+        )
 
     assert response.status_code == 200
 

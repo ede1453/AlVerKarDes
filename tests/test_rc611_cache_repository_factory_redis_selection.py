@@ -56,13 +56,17 @@ def test_rc611_cache_repository_factory_raises_clear_error_if_redis_package_miss
     import sys
 
     monkeypatch.setenv("AICI_CACHE_BACKEND", "redis")
-    monkeypatch.delitem(sys.modules, "redis", raising=False)
 
-    # EÃ„Å¸er redis gerÃƒÂ§ekten kuruluysa bu test skip edilir; lokal/CI ortamÃ„Â±nda kurulu deÃ„Å¸ilse hata mesajÃ„Â±nÃ„Â± doÃ„Å¸rular.
-    try:
-        __import__("redis")
-    except ModuleNotFoundError:
-        with pytest.raises(RuntimeError, match="redis paketi yÃƒÂ¼klÃƒÂ¼ deÃ„Å¸il"):
-            get_cache_repository()
-    else:
-        pytest.skip("redis paketi ortamda kurulu; missing-package senaryosu atlandÃ„Â±.")
+    # Setting sys.modules[name] = None is the standard way to force
+    # ModuleNotFoundError on `import name`, regardless of whether the real
+    # package is actually installed (unlike `del sys.modules[name]`, which
+    # only clears the cache and lets a real import succeed if the package is
+    # present -- the previous version of this test used `del` + a manual
+    # __import__ probe and self-skipped whenever redis was installed, which
+    # is always the case here since it's a real requirements.txt dependency.
+    # That meant the "missing package" branch in cache_repository_factory.py
+    # had zero real test coverage. This forces the branch every time.
+    monkeypatch.setitem(sys.modules, "redis", None)
+
+    with pytest.raises(RuntimeError, match="redis paketi yüklü değil"):
+        get_cache_repository()

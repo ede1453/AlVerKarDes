@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domains.ai_shopping_assistant.assistant_service import (
     AIShoppingAssistantService,
 )
+from app.domains.identity.dependencies import get_current_user
 
 
 class AIShoppingAssistantAdviceRequest(BaseModel):
@@ -32,5 +33,8 @@ router = APIRouter(prefix="/ai-shopping-assistant", tags=["ai-shopping-assistant
 
 
 @router.post("/advise")
-async def advise(payload: AIShoppingAssistantAdviceRequest):
+async def advise(
+    payload: AIShoppingAssistantAdviceRequest,
+    current_user=Depends(get_current_user),
+):
     return AIShoppingAssistantService().advise(payload.model_dump())

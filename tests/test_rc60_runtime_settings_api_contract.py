@@ -1,12 +1,13 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-
-client = TestClient(app)
+from tests.auth_test_helpers import operator_headers
 
 
 def test_rc60_runtime_settings_status_api():
-    response = client.get("/api/v1/runtime-settings/status")
+    with TestClient(app) as client:
+        headers = operator_headers(client)
+        response = client.get("/api/v1/runtime-settings/status", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
