@@ -1,0 +1,87 @@
+{
+  "common": {
+    "meta": {
+      "title": "AlVerKarDes",
+      "description": "AlVerKarDes – Produktsuche und Preisverfolgung"
+    },
+    "nav": {
+      "account": "Mein Konto",
+      "watchlist": "Meine Merkliste",
+      "logout": "Abmelden",
+      "login": "Anmelden",
+      "register": "Registrieren"
+    },
+    "localeSwitcher": {
+      "de": "Deutsch",
+      "en": "English"
+    }
+  },
+  "search": {
+    "title": "Produkte suchen",
+    "placeholder": "Produktname...",
+    "ariaLabel": "Produkte suchen",
+    "button": "Suchen",
+    "error": "Bei der Suche ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "noResults": "Keine Ergebnisse für „{query}“ gefunden."
+  },
+  "productDetail": {
+    "metaFallbackTitle": "Produkt | AlVerKarDes",
+    "metaTitle": "{title} | AlVerKarDes",
+    "fetchError": "Beim Laden des Produkts ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "offersHeading": "Angebote",
+    "priceHistoryHeading": "Preisverlauf",
+    "dealSignalHeading": "Angebotssignal",
+    "tableStore": "Shop",
+    "tablePrice": "Preis",
+    "tableStock": "Lagerbestand",
+    "tableData": "Daten",
+    "tableLink": "Link",
+    "stockUnknown": "unbekannt",
+    "badgeReal": "echte Daten",
+    "badgeUnverified": "nicht verifiziert",
+    "viewLink": "ansehen",
+    "noOffers": "Für dieses Produkt sind noch keine Angebote hinterlegt.",
+    "currentPrice": "Aktueller Preis:",
+    "minPrice": "Niedrigster:",
+    "avgPrice": "Durchschnitt:",
+    "maxPrice": "Höchster:",
+    "trendLabel": "Trend:",
+    "noHistory": "Für dieses Produkt gibt es noch keinen echten Preisverlauf ({reason}).",
+    "decision": "Entscheidung:",
+    "scoreLabel": "(Punktzahl {score})"
+  },
+  "auth": {
+    "emailLabel": "E-Mail",
+    "passwordLabel": "Passwort",
+    "networkError": "Der Server konnte nicht erreicht werden."
+  },
+  "login": {
+    "heading": "Anmelden",
+    "submitButton": "Anmelden",
+    "submitting": "Anmeldung läuft...",
+    "errorFallback": "Anmeldung fehlgeschlagen ({status})"
+  },
+  "register": {
+    "heading": "Registrieren",
+    "successHeading": "Registrierung erfolgreich",
+    "successMessage": "Dein Konto wurde erstellt. Du wirst zur Anmeldeseite weitergeleitet...",
+    "goNow": "Jetzt gehen",
+    "passwordLabel": "Passwort (8–128 Zeichen)",
+    "displayNameLabel": "Anzeigename (optional)",
+    "submitButton": "Registrieren",
+    "submitting": "Registrierung läuft...",
+    "errorFallback": "Registrierung fehlgeschlagen ({status})"
+  },
+  "dashboard": {
+    "heading": "Mein Konto",
+    "sessionError": "Deine Sitzung konnte nicht überprüft werden. Bitte versuche erneut, dich anzumelden.",
+    "emailLabel": "E-Mail:",
+    "displayNameLabel": "Anzeigename:",
+    "notSpecified": "(nicht angegeben)"
+  },
+  "watchlist": {
+    "heading": "Meine Merkliste",
+    "fetchError": "Beim Laden der Merkliste ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "empty": "Deine Merkliste ist noch leer."
+  }
+}

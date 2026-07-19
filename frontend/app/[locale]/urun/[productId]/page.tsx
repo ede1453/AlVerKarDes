@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import type { Locale } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BACKEND_ORIGIN, ProductDetail } from "@/lib/backend";
 
 interface ProductPageProps {
-  params: Promise<{ productId: string }>;
+  params: Promise<{ locale: Locale; productId: string }>;
 }
 
 type DetailResult =
@@ -30,16 +32,19 @@ async function fetchProductDetail(productId: string): Promise<DetailResult> {
 }
 
 export async function generateMetadata({ params }: ProductPageProps) {
-  const { productId } = await params;
+  const { locale, productId } = await params;
+  const t = await getTranslations({ locale, namespace: "productDetail" });
   const result = await fetchProductDetail(productId);
   if (result.kind !== "ok") {
-    return { title: "Urun | AlVerKarDes" };
+    return { title: t("metaFallbackTitle") };
   }
-  return { title: `${result.data.product.title} | AlVerKarDes` };
+  return { title: t("metaTitle", { title: result.data.product.title }) };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { productId } = await params;
+  const { locale, productId } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("productDetail");
   const result = await fetchProductDetail(productId);
 
   if (result.kind === "not_found") {
@@ -49,10 +54,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (result.kind === "error") {
     return (
       <div>
-        <p className="error-box">
-          Urun bilgisi alinirken bir hata olustu. Backend&apos;e ulasilamadi, lutfen daha sonra
-          tekrar deneyin.
-        </p>
+        <p className="error-box">{t("fetchError")}</p>
       </div>
     );
   }
@@ -65,18 +67,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <p style={{ color: "#666" }}>{product.canonical_key}</p>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <h2>Teklifler</h2>
+        <h2>{t("offersHeading")}</h2>
         {offers.length === 0 ? (
-          <p className="notice-box">Bu urun icin henuz kayitli bir teklif yok.</p>
+          <p className="notice-box">{t("noOffers")}</p>
         ) : (
           <table className="offers-table">
             <thead>
               <tr>
-                <th>Magaza</th>
-                <th>Fiyat</th>
-                <th>Stok</th>
-                <th>Veri</th>
-                <th>Link</th>
+                <th>{t("tableStore")}</th>
+                <th>{t("tablePrice")}</th>
+                <th>{t("tableStock")}</th>
+                <th>{t("tableData")}</th>
+                <th>{t("tableLink")}</th>
               </tr>
             </thead>
             <tbody>
@@ -86,15 +88,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <td>
                     {offer.price} {offer.currency}
                   </td>
-                  <td>{offer.stock_status ?? "bilinmiyor"}</td>
+                  <td>{offer.stock_status ?? t("stockUnknown")}</td>
                   <td>
                     <span className={`badge ${offer.is_real_data ? "badge-real" : "badge-unverified"}`}>
-                      {offer.is_real_data ? "gercek veri" : "dogrulanmamis"}
+                      {offer.is_real_data ? t("badgeReal") : t("badgeUnverified")}
                     </span>
                   </td>
                   <td>
                     <a href={offer.url} target="_blank" rel="noopener noreferrer">
-                      goruntule
+                      {t("viewLink")}
                     </a>
                   </td>
                 </tr>
@@ -105,28 +107,37 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </section>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <h2>Fiyat gecmisi</h2>
+        <h2>{t("priceHistoryHeading")}</h2>
         {priceHistory.status === "OK" ? (
           <ul>
-            <li>Guncel fiyat: {priceHistory.latest_price}</li>
-            <li>En dusuk: {priceHistory.min_price}</li>
-            <li>Ortalama: {priceHistory.average_price}</li>
-            <li>En yuksek: {priceHistory.max_price}</li>
-            <li>Trend: {priceHistory.trend}</li>
+            <li>
+              {t("currentPrice")} {priceHistory.latest_price}
+            </li>
+            <li>
+              {t("minPrice")} {priceHistory.min_price}
+            </li>
+            <li>
+              {t("avgPrice")} {priceHistory.average_price}
+            </li>
+            <li>
+              {t("maxPrice")} {priceHistory.max_price}
+            </li>
+            <li>
+              {t("trendLabel")} {priceHistory.trend}
+            </li>
           </ul>
         ) : (
-          <p className="notice-box">
-            Bu urun icin henuz gercek fiyat gecmisi yok ({priceHistory.reason}).
-          </p>
+          <p className="notice-box">{t("noHistory", { reason: priceHistory.reason })}</p>
         )}
       </section>
 
       {dealSignal && (
         <section style={{ marginTop: "1.5rem" }}>
-          <h2>Firsat sinyali</h2>
+          <h2>{t("dealSignalHeading")}</h2>
           <div className="deal-card">
             <p>
-              <strong>Karar:</strong> {dealSignal.deal_score.decision} (skor {dealSignal.deal_score.score})
+              <strong>{t("decision")}</strong> {dealSignal.deal_score.decision}{" "}
+              {t("scoreLabel", { score: dealSignal.deal_score.score })}
             </p>
             <p>{dealSignal.message}</p>
             {dealSignal.deal_score.reasons.length > 0 && (

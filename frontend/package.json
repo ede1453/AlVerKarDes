@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:i18n": "node scripts/check-i18n-parity.mjs"
   },
   "dependencies": {
     "next": "16.2.10",
+    "next-intl": "^4.13.2",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

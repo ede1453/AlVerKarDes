@@ -1,5 +1,13 @@
+import type { Locale } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BACKEND_ORIGIN, IdentityUser, WatchlistItem } from "@/lib/backend";
 import { getSessionToken } from "@/lib/session";
+
+interface WatchlistPageProps {
+  // The (app)/layout.tsx guard above already validates this against
+  // routing.locales (notFound() otherwise), so it's safe to type as Locale here.
+  params: Promise<{ locale: Locale }>;
+}
 
 async function fetchMe(token: string): Promise<IdentityUser | null> {
   try {
@@ -31,17 +39,23 @@ async function fetchWatchlist(token: string, userId: string): Promise<WatchlistI
   }
 }
 
-export default async function WatchlistPage() {
+export default async function WatchlistPage({ params }: WatchlistPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("watchlist");
+  // Session-error text is shared verbatim with the dashboard page - sourced
+  // from the "dashboard" namespace so there's a single message key, not a
+  // duplicated string across namespaces.
+  const tDashboard = await getTranslations("dashboard");
+
   const token = await getSessionToken();
   const user = token ? await fetchMe(token) : null;
 
   if (!token || !user) {
     return (
       <div>
-        <h1>Takip Listem</h1>
-        <p className="error-box">
-          Oturum bilgisi dogrulanamadi. Lutfen tekrar giris yapmayi deneyin.
-        </p>
+        <h1>{t("heading")}</h1>
+        <p className="error-box">{tDashboard("sessionError")}</p>
       </div>
     );
   }
@@ -50,14 +64,11 @@ export default async function WatchlistPage() {
 
   return (
     <div>
-      <h1>Takip Listem</h1>
+      <h1>{t("heading")}</h1>
       {items === null ? (
-        <p className="error-box">
-          Takip listesi alinirken bir hata olustu. Backend&apos;e ulasilamadi, lutfen daha sonra
-          tekrar deneyin.
-        </p>
+        <p className="error-box">{t("fetchError")}</p>
       ) : items.length === 0 ? (
-        <p className="notice-box">Henuz takip listende bir sey yok.</p>
+        <p className="notice-box">{t("empty")}</p>
       ) : (
         <ul>
           {items.map((item) => (

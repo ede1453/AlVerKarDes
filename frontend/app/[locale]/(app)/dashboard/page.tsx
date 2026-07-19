@@ -1,5 +1,13 @@
+import type { Locale } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BACKEND_ORIGIN, IdentityUser } from "@/lib/backend";
 import { getSessionToken } from "@/lib/session";
+
+interface DashboardPageProps {
+  // The (app)/layout.tsx guard above already validates this against
+  // routing.locales (notFound() otherwise), so it's safe to type as Locale here.
+  params: Promise<{ locale: Locale }>;
+}
 
 async function fetchMe(token: string): Promise<IdentityUser | null> {
   try {
@@ -16,7 +24,11 @@ async function fetchMe(token: string): Promise<IdentityUser | null> {
   }
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: DashboardPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("dashboard");
+
   // Layout guard already redirected to /giris if there's no cookie, but the
   // token can still be stale/invalid (e.g. expired) - handle that honestly.
   const token = await getSessionToken();
@@ -25,22 +37,20 @@ export default async function DashboardPage() {
   if (!user) {
     return (
       <div>
-        <h1>Hesabim</h1>
-        <p className="error-box">
-          Oturum bilgisi dogrulanamadi. Lutfen tekrar giris yapmayi deneyin.
-        </p>
+        <h1>{t("heading")}</h1>
+        <p className="error-box">{t("sessionError")}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1>Hesabim</h1>
+      <h1>{t("heading")}</h1>
       <p>
-        <strong>E-posta:</strong> {user.email}
+        <strong>{t("emailLabel")}</strong> {user.email}
       </p>
       <p>
-        <strong>Gorunen ad:</strong> {user.display_name ?? "(belirtilmemis)"}
+        <strong>{t("displayNameLabel")}</strong> {user.display_name ?? t("notSpecified")}
       </p>
     </div>
   );

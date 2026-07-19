@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 
 export default function LoginPage() {
+  const t = useTranslations("login");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,25 +25,27 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof body?.detail === "string" ? body.detail : `Giris basarisiz (${res.status})`);
+        setError(
+          typeof body?.detail === "string" ? body.detail : t("errorFallback", { status: res.status })
+        );
         setSubmitting(false);
         return;
       }
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Sunucuya ulasilamadi.");
+      setError(tAuth("networkError"));
       setSubmitting(false);
     }
   }
 
   return (
     <div>
-      <h1>Giris yap</h1>
+      <h1>{t("heading")}</h1>
       {error && <p className="error-box">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-field">
-          <label htmlFor="email">E-posta</label>
+          <label htmlFor="email">{tAuth("emailLabel")}</label>
           <input
             id="email"
             type="email"
@@ -50,7 +55,7 @@ export default function LoginPage() {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="password">Sifre</label>
+          <label htmlFor="password">{tAuth("passwordLabel")}</label>
           <input
             id="password"
             type="password"
@@ -60,7 +65,7 @@ export default function LoginPage() {
           />
         </div>
         <button type="submit" className="btn" disabled={submitting}>
-          {submitting ? "Giris yapiliyor..." : "Giris yap"}
+          {submitting ? t("submitting") : t("submitButton")}
         </button>
       </form>
     </div>

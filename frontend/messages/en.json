@@ -1,0 +1,87 @@
+{
+  "common": {
+    "meta": {
+      "title": "AlVerKarDes",
+      "description": "AlVerKarDes - product search and price tracking"
+    },
+    "nav": {
+      "account": "My Account",
+      "watchlist": "My Watchlist",
+      "logout": "Log out",
+      "login": "Log in",
+      "register": "Register"
+    },
+    "localeSwitcher": {
+      "de": "Deutsch",
+      "en": "English"
+    }
+  },
+  "search": {
+    "title": "Search products",
+    "placeholder": "Product name...",
+    "ariaLabel": "Search products",
+    "button": "Search",
+    "error": "An error occurred while searching. The backend could not be reached, please try again later.",
+    "noResults": "No results found for \"{query}\"."
+  },
+  "productDetail": {
+    "metaFallbackTitle": "Product | AlVerKarDes",
+    "metaTitle": "{title} | AlVerKarDes",
+    "fetchError": "An error occurred while loading the product. The backend could not be reached, please try again later.",
+    "offersHeading": "Offers",
+    "priceHistoryHeading": "Price history",
+    "dealSignalHeading": "Deal signal",
+    "tableStore": "Store",
+    "tablePrice": "Price",
+    "tableStock": "Stock",
+    "tableData": "Data",
+    "tableLink": "Link",
+    "stockUnknown": "unknown",
+    "badgeReal": "real data",
+    "badgeUnverified": "unverified",
+    "viewLink": "view",
+    "noOffers": "There are no offers recorded for this product yet.",
+    "currentPrice": "Current price:",
+    "minPrice": "Lowest:",
+    "avgPrice": "Average:",
+    "maxPrice": "Highest:",
+    "trendLabel": "Trend:",
+    "noHistory": "There is no real price history for this product yet ({reason}).",
+    "decision": "Decision:",
+    "scoreLabel": "(score {score})"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "networkError": "Could not reach the server."
+  },
+  "login": {
+    "heading": "Log in",
+    "submitButton": "Log in",
+    "submitting": "Logging in...",
+    "errorFallback": "Login failed ({status})"
+  },
+  "register": {
+    "heading": "Register",
+    "successHeading": "Registration successful",
+    "successMessage": "Your account has been created. You are being redirected to the login page...",
+    "goNow": "Go now",
+    "passwordLabel": "Password (8-128 characters)",
+    "displayNameLabel": "Display name (optional)",
+    "submitButton": "Register",
+    "submitting": "Registering...",
+    "errorFallback": "Registration failed ({status})"
+  },
+  "dashboard": {
+    "heading": "My Account",
+    "sessionError": "Your session could not be verified. Please try logging in again.",
+    "emailLabel": "Email:",
+    "displayNameLabel": "Display name:",
+    "notSpecified": "(not specified)"
+  },
+  "watchlist": {
+    "heading": "My Watchlist",
+    "fetchError": "An error occurred while loading the watchlist. The backend could not be reached, please try again later.",
+    "empty": "There is nothing on your watchlist yet."
+  }
+}

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 
 export default function RegisterPage() {
+  const t = useTranslations("register");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +31,9 @@ export default function RegisterPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(typeof body?.detail === "string" ? body.detail : `Kayit basarisiz (${res.status})`);
+        setError(
+          typeof body?.detail === "string" ? body.detail : t("errorFallback", { status: res.status })
+        );
         setSubmitting(false);
         return;
       }
@@ -37,7 +41,7 @@ export default function RegisterPage() {
       setSubmitting(false);
       setTimeout(() => router.push("/giris"), 1200);
     } catch {
-      setError("Sunucuya ulasilamadi.");
+      setError(tAuth("networkError"));
       setSubmitting(false);
     }
   }
@@ -45,10 +49,9 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div>
-        <h1>Kayit basarili</h1>
+        <h1>{t("successHeading")}</h1>
         <p className="notice-box">
-          Hesabin olusturuldu. Giris sayfasina yonlendiriliyorsun...{" "}
-          <Link href="/giris">Hemen git</Link>
+          {t("successMessage")} <Link href="/giris">{t("goNow")}</Link>
         </p>
       </div>
     );
@@ -56,11 +59,11 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <h1>Kayit ol</h1>
+      <h1>{t("heading")}</h1>
       {error && <p className="error-box">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-field">
-          <label htmlFor="email">E-posta</label>
+          <label htmlFor="email">{tAuth("emailLabel")}</label>
           <input
             id="email"
             type="email"
@@ -70,7 +73,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="password">Sifre (8-128 karakter)</label>
+          <label htmlFor="password">{t("passwordLabel")}</label>
           <input
             id="password"
             type="password"
@@ -82,7 +85,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="displayName">Gorunen ad (opsiyonel)</label>
+          <label htmlFor="displayName">{t("displayNameLabel")}</label>
           <input
             id="displayName"
             type="text"
@@ -91,7 +94,7 @@ export default function RegisterPage() {
           />
         </div>
         <button type="submit" className="btn" disabled={submitting}>
-          {submitting ? "Kayit olunuyor..." : "Kayit ol"}
+          {submitting ? t("submitting") : t("submitButton")}
         </button>
       </form>
     </div>
