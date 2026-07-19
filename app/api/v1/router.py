@@ -4,16 +4,37 @@ from app.api.v1.ai_decision_pipeline_router import router as ai_decision_pipelin
 from app.api.v1.ai_explanation_router import router as ai_explanation_router
 from app.api.v1.ai_shopping_agent_router import router as ai_shopping_agent_router
 from app.api.v1.ai_shopping_assistant_router import router as ai_shopping_assistant_router
+from app.api.v1.amazon_connector_router import router as amazon_connector_router
 from app.api.v1.cache_router import router as cache_router
+from app.api.v1.commerce_ingestion_execution_router import router as commerce_ingestion_execution_router
+from app.api.v1.commerce_ingestion_router import router as commerce_ingestion_router
+from app.api.v1.commerce_pipeline_router import router as commerce_pipeline_router
+from app.api.v1.connector_operations_router import router as connector_operations_router
+from app.api.v1.connector_runtime_router import router as connector_runtime_router
 from app.api.v1.consumer_intelligence_router import router as consumer_intelligence_router
+from app.api.v1.consumer_trust_router import router as consumer_trust_router
 from app.api.v1.crawler_router import router as crawler_router
 from app.api.v1.deal_detection_router import router as deal_detection_router
+from app.api.v1.deal_feed_router import router as deal_feed_router
+from app.api.v1.deal_intelligence_router import router as deal_intelligence_router
+from app.api.v1.deal_lifecycle_router import router as deal_lifecycle_router
+from app.api.v1.deal_notification_operations_router import router as deal_notification_operations_router
+from app.api.v1.deal_notification_provider_router import router as deal_notification_provider_router
+from app.api.v1.deal_notifications_router import router as deal_notifications_router
+from app.api.v1.deal_operations_router import router as deal_operations_router
+from app.api.v1.deal_persistence_router import router as deal_persistence_router
+from app.api.v1.deal_storage_operations_router import router as deal_storage_operations_router
+from app.api.v1.deal_storage_resilience_router import router as deal_storage_resilience_router
+from app.api.v1.deal_storage_router import router as deal_storage_router
+from app.api.v1.deal_storage_sqlalchemy_router import router as deal_storage_sqlalchemy_router
 from app.api.v1.decision_context_router import router as decision_context_router
 from app.api.v1.decision_memory_router import router as decision_memory_router
 from app.api.v1.discount_intelligence_router import router as discount_intelligence_router
 from app.api.v1.event_bus_router import router as event_bus_router
 from app.api.v1.explanation_router import router as explanation_router
 from app.api.v1.feedback_learning_router import router as feedback_learning_router
+from app.api.v1.growth_intelligence_router import router as growth_intelligence_router
+from app.api.v1.http_connector_router import router as http_connector_router
 from app.api.v1.job_queue_router import router as job_queue_router
 from app.api.v1.llm_audit_trace_router import router as llm_audit_trace_router
 from app.api.v1.llm_explanation_adapter_router import router as llm_explanation_adapter_router
@@ -24,14 +45,19 @@ from app.api.v1.llm_provider_selection_router import router as llm_provider_sele
 from app.api.v1.llm_streaming_router import router as llm_streaming_router
 from app.api.v1.marketplace_aggregation_router import router as marketplace_aggregation_router
 from app.api.v1.marketplace_connectors_router import router as marketplace_connectors_router
+from app.api.v1.marketplace_expansion_router import router as marketplace_expansion_router
+from app.api.v1.notification_outbox_router import router as notification_outbox_router
 from app.api.v1.notifications_router import router as notifications_router
 from app.api.v1.observability_router import router as observability_router
 from app.api.v1.personalization_router import router as personalization_router
 from app.api.v1.personalized_intelligence_router import router as personalized_intelligence_router
 from app.api.v1.price_history_router import router as price_history_router
 from app.api.v1.price_prediction_router import router as price_prediction_router
+from app.api.v1.price_quality_router import router as price_quality_router
 from app.api.v1.product_canonicalization_router import router as product_canonicalization_router
 from app.api.v1.product_matching_router import router as product_matching_router
+from app.api.v1.production_http_router import router as production_http_router
+from app.api.v1.production_launch_router import router as production_launch_router
 from app.api.v1.profile_aware_recommendations_router import router as profile_aware_recommendations_router
 from app.api.v1.provider_scheduler_router import router as provider_scheduler_router
 from app.api.v1.rate_limit_router import router as rate_limit_router
@@ -41,10 +67,13 @@ from app.api.v1.recommendations_router import router as recommendations_router
 from app.api.v1.runtime_settings_router import router as runtime_settings_router
 from app.api.v1.shopping_pipeline_router import router as shopping_pipeline_router
 from app.api.v1.smart_alerts_router import router as smart_alerts_router
+from app.api.v1.storage_production_readiness_router import router as storage_production_readiness_router
+from app.api.v1.storage_reliability_router import router as storage_reliability_router
 from app.api.v1.trust_intelligence_router import router as trust_intelligence_router
 from app.api.v1.unified_search_router import router as unified_search_router
 from app.api.v1.user_activity_router import router as user_activity_router
 from app.api.v1.user_profiles_router import router as user_profiles_router
+from app.api.v1.user_value_router import router as user_value_router
 from app.api.v1.watchlist_router import router as watchlist_router
 from app.domains.alerts.router import router as alerts_router
 from app.domains.application.grouped_search_recommend_router import router as grouped_search_recommend_router
@@ -65,39 +94,8 @@ from app.domains.products.orphan_cleanup_router import router as orphan_cleanup_
 from app.domains.products.post_merge_router import router as post_merge_router
 from app.domains.products.router import router as products_router
 from app.domains.system.router import router as system_router
-from app.api.v1.notification_outbox_router import router as notification_outbox_router
-from app.api.v1.commerce_ingestion_router import router as commerce_ingestion_router
-from app.api.v1.commerce_ingestion_execution_router import router as commerce_ingestion_execution_router
-from app.api.v1.connector_runtime_router import router as connector_runtime_router
-from app.api.v1.connector_operations_router import router as connector_operations_router
-from app.api.v1.marketplace_expansion_router import router as marketplace_expansion_router
-from app.api.v1.http_connector_router import router as http_connector_router
-from app.api.v1.production_http_router import router as production_http_router
-from app.api.v1.price_quality_router import router as price_quality_router
-from app.api.v1.deal_intelligence_router import router as deal_intelligence_router
-from app.api.v1.deal_operations_router import router as deal_operations_router
-from app.api.v1.deal_lifecycle_router import router as deal_lifecycle_router
-from app.api.v1.deal_persistence_router import router as deal_persistence_router
-from app.api.v1.deal_storage_router import router as deal_storage_router
-from app.api.v1.deal_storage_sqlalchemy_router import router as deal_storage_sqlalchemy_router
-from app.api.v1.deal_storage_resilience_router import router as deal_storage_resilience_router
-from app.api.v1.deal_storage_operations_router import router as deal_storage_operations_router
-from app.api.v1.storage_reliability_router import router as storage_reliability_router
-from app.api.v1.storage_production_readiness_router import router as storage_production_readiness_router
-from app.api.v1.commerce_pipeline_router import router as commerce_pipeline_router
-from app.api.v1.deal_feed_router import router as deal_feed_router
-from app.api.v1.deal_notifications_router import router as deal_notifications_router
-from app.api.v1.deal_notification_operations_router import router as deal_notification_operations_router
-from app.api.v1.deal_notification_provider_router import router as deal_notification_provider_router
-from app.api.v1.consumer_trust_router import router as consumer_trust_router
-from app.api.v1.user_value_router import router as user_value_router
-from app.api.v1.growth_intelligence_router import router as growth_intelligence_router
-from app.api.v1.production_launch_router import router as production_launch_router
 
-
-
-
-
+from app.api.v1.auth_core_router import router as auth_core_router
 api_router = APIRouter()
 
 api_router.include_router(identity_router, prefix="/identity", tags=["identity"])
@@ -155,7 +153,6 @@ api_router.include_router(smart_alerts_router)
 api_router.include_router(watchlist_router)
 api_router.include_router(discount_intelligence_router)
 api_router.include_router(ai_explanation_router)
-api_router.include_router(marketplace_connectors_router)
 api_router.include_router(crawler_router)
 api_router.include_router(product_canonicalization_router)
 api_router.include_router(recommendations_router)
@@ -193,4 +190,6 @@ api_router.include_router(consumer_trust_router)
 api_router.include_router(user_value_router)
 api_router.include_router(growth_intelligence_router)
 api_router.include_router(production_launch_router)
-
+api_router.include_router(amazon_connector_router)
+api_router.include_router(marketplace_connectors_router)
+api_router.include_router(auth_core_router)

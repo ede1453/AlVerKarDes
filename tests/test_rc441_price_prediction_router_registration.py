@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.auth_test_helpers import auth_headers
 
 client = TestClient(app)
 
@@ -13,21 +14,24 @@ def test_rc441_price_prediction_router_is_registered():
 
 
 def test_rc441_price_prediction_endpoint_no_longer_returns_404():
-    response = client.post(
-        "/api/v1/price-prediction/predict",
-        json={
-            "product_key": "macbook-air",
-            "price_history": {
-                "latest_price": "949.00",
-                "min_price": "949.00",
-                "average_price": "999.00",
-                "max_price": "1099.00",
-                "trend": "DOWN",
-                "points": [{"price": "999.00"}, {"price": "949.00"}],
+    with TestClient(app) as scoped_client:
+        headers = auth_headers(scoped_client)
+        response = scoped_client.post(
+            "/api/v1/price-prediction/predict",
+            headers=headers,
+            json={
+                "product_key": "macbook-air",
+                "price_history": {
+                    "latest_price": "949.00",
+                    "min_price": "949.00",
+                    "average_price": "999.00",
+                    "max_price": "1099.00",
+                    "trend": "DOWN",
+                    "points": [{"price": "999.00"}, {"price": "949.00"}],
+                },
+                "prediction_horizon_days": 7,
             },
-            "prediction_horizon_days": 7,
-        },
-    )
+        )
 
     assert response.status_code == 200
     assert response.json()["product_key"] == "macbook-air"

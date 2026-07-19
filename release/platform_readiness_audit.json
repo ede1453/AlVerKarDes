@@ -1,0 +1,2235 @@
+{
+  "summary": {
+    "file_count": 9254,
+    "python_file_count": 3536,
+    "test_file_count": 977,
+    "router_file_count": 76,
+    "route_count": 453,
+    "migration_count": 14
+  },
+  "release_hygiene": {
+    "unsafe_file_count": 7443,
+    "unsafe_files_sample": [
+      ".env",
+      ".env.amazon",
+      ".env.prod",
+      ".env.production",
+      ".git\\COMMIT_EDITMSG",
+      ".git\\config",
+      ".git\\description",
+      ".git\\HEAD",
+      ".git\\index",
+      ".pytest_cache\\.gitignore",
+      ".pytest_cache\\CACHEDIR.TAG",
+      ".pytest_cache\\README.md",
+      ".ruff_cache\\.gitignore",
+      ".ruff_cache\\CACHEDIR.TAG",
+      ".venv\\.gitignore",
+      ".venv\\pyvenv.cfg",
+      "dist\\aici_backend_clean.zip",
+      "tests\\__pycache__\\conftest.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\conftest.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_agents.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_agents.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_alerts_api_contract.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_alerts_api_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_alert_evaluation_service.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_alert_evaluation_service.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_alert_notification_service.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_alert_notification_service.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_alert_rule_db_repository_contract.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_alert_rule_db_repository_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_alert_rule_repository.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_alert_rule_repository.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_amazon_fixture_registry.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_amazon_fixture_registry.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_amazon_parser.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_amazon_parser.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connectors.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connectors.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_hotfix_amazon_fixture_isolation.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_hotfix_rc49_compatibility.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_hotfix_router_registration.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_hotfix_v11_rc49_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_hotfix_v11_vertical_slice.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_dedup.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_dedup.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_offer_dedup.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_offer_dedup.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_service.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_ingestion_service.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_manager.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_manager.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_product_match_integration.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_product_match_integration.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_readiness.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_connector_search_presenter.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_connector_search_presenter.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_consumer_core.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_consumer_core.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_consumer_decision_engine.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_consumer_decision_engine.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_data_integrity_guard.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_data_integrity_guard.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_decision_input_builder.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_decision_input_builder.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_decision_orchestrator.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_decision_orchestrator.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_duplicate_product_regression_guard.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_duplicate_product_regression_guard.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_e2e_scenario.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connectors_api.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connectors_api.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connectors_api_fixture_mode.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connectors_api_fixture_mode.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connectors_api_multi_fixture.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connectors_api_multi_fixture.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connectors_ingest_api.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connectors_ingest_api.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connector_bridge.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connector_bridge.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connector_contract.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connector_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connector_ingestion_service.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connector_ingestion_service.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_external_connector_registry_fixture_mode.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_external_connector_registry_fixture_mode.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_feed_validation.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_feed_validation.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_final_release_environment_split_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_final_release_hotfix_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_final_release_pack_contract.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_final_release_pack_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_final_release_powershell_syntax_contract.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_grouped_merge_presenter.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_grouped_merge_presenter.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_grouped_search_recommend_decision_integration.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_grouped_search_recommend_decision_integration.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_grouped_search_recommend_service.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_grouped_search_recommend_service.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_idempotency_services.cpython-313-pytest-7.4.3.pyc",
+      "tests\\__pycache__\\test_idempotency_services.cpython-313-pytest-8.3.4.pyc",
+      "tests\\__pycache__\\test_local_validation_runner_file.cpython-313-pytest-7.4.3.pyc"
+    ],
+    "git_dirty": true,
+    "git_tag": "v1.0.0"
+  },
+  "environment": {
+    "production": true,
+    "debug_disabled": true,
+    "jwt": {
+      "valid": true,
+      "length": 42,
+      "character_classes": 3
+    },
+    "cors": {
+      "valid": false,
+      "errors": [
+        "HTTPS_REQUIRED:http://localhost:3000"
+      ],
+      "origins": [
+        "http://localhost:3000"
+      ]
+    },
+    "trusted_hosts": {
+      "valid": false,
+      "errors": [
+        "TRUSTED_HOSTS_REQUIRED"
+      ],
+      "hosts": []
+    },
+    "database": {
+      "valid": true,
+      "errors": [],
+      "host": "db",
+      "scheme": "postgresql+asyncpg"
+    },
+    "redis": {
+      "valid": true,
+      "errors": [],
+      "host": "redis",
+      "scheme": "redis"
+    },
+    "fixture_violations": [],
+    "ready": false
+  },
+  "connector_credentials": {
+    "amazon": [
+      "AMAZON_CREATORS_CLIENT_ID",
+      "AMAZON_CREATORS_CLIENT_SECRET",
+      "AMAZON_CREATORS_PARTNER_TAG"
+    ],
+    "ebay": [
+      "EBAY_CLIENT_ID",
+      "EBAY_CLIENT_SECRET"
+    ],
+    "idealo": [
+      "IDEALO_PARTNER_ID",
+      "IDEALO_API_KEY"
+    ],
+    "affiliate": [
+      "AFFILIATE_NETWORK",
+      "AFFILIATE_PUBLISHER_ID",
+      "AFFILIATE_CAMPAIGN_ID"
+    ]
+  },
+  "routing": {
+    "duplicate_route_count": 0,
+    "duplicates": []
+  },
+  "authorization": {
+    "public_count": 4,
+    "protected_count": 1,
+    "unprotected_write_count": 330,
+    "unprotected_write_routes": [
+      {
+        "path": "/api/v1/identity/register",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/identity/login",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/brands",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/categories",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/from-name",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/market/stores",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/market/offers",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/market/prices",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/market/connectors/import",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/admin/import/upload",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connectors/ingest",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/application/search-recommend",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/application/grouped-search-recommend",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/merge/apply",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/merge/verify",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/cleanup/orphans",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/external-connectors/ingest",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/alerts/rules",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/alerts/rules/{rule_id}",
+        "methods": [
+          "DELETE"
+        ]
+      },
+      {
+        "path": "/api/v1/products/intelligence/merge-candidates",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/intelligence/merge-candidates/persist",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/products/intelligence/merge-candidates/{candidate_id}/review",
+        "methods": [
+          "PATCH"
+        ]
+      },
+      {
+        "path": "/api/v1/products/intelligence/merge-candidates/{candidate_id}/apply",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deals/summary",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/recommendations/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/recommendations/intelligence/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-intelligence/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-decision-pipeline/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/decision-context/build",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/explanations/generate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/decision-memory/store",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/decision-memory/{decision_id}/outcome",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalized-intelligence/profiles",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalized-intelligence/decisions/personalize",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/feedback-learning/feedback",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/trust-intelligence/signals",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/trust-intelligence/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-shopping-assistant/advise",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-explanations/prepare",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-gateway/generate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-audit-traces",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-audit-traces/db",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run-with-audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run-intelligent",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run-guarded",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run-guarded-with-audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-orchestration/run-with-db-audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-provider-health/check",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-provider-selection/select",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-streaming/preview",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/llm-streaming/sse",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/observability/snapshot",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/observability/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/observability/logs",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/observability/audit-events",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/rate-limits/check",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/cache/key",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/cache/set",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/cache/get",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/cache/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/jobs/enqueue",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/jobs/run-now",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/events/publish",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/events/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/provider-schedules",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/provider-schedules/{schedule_id}/run-once",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/provider-schedules/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-aggregation/aggregate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-aggregation/aggregate-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/unified-search/search",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/unified-search/search-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/product-matching/match",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/product-matching/match-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-history/points",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-history/points/bulk",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-history/summary-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-history/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalization/profiles",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalization/score",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalization/score-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/personalization/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-shopping-agent/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-shopping-agent/run-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-detection/detect",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-detection/detect-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-prediction/predict",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-prediction/predict-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/smart-alerts/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/smart-alerts/evaluate-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/watchlist/items",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/watchlist/items/{item_id}/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/watchlist/items/{item_id}/deactivate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/watchlist/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/discount-intelligence/analyze",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/discount-intelligence/analyze-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-explanation/explain",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/ai-explanation/explain-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/crawler/crawl",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/product-canonicalization/canonicalize",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/product-canonicalization/canonicalize-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/recommendations/recommend",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/recommendations/recommend-cached",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/recommendations/analyze",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notifications/deliver",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notifications/from-smart-alert",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-activity/record",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-activity/recommendations/adjust",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-activity/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-profiles/preferences",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-profiles/feedback/merge",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-profiles/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/profile-aware-recommendations/recommend",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/shopping-pipeline/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/enqueue",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/enqueue-many",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/readiness/checks",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-manifest/publish",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-approval/approve",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-approval/revoke",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-audit/events",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/claim-next",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/scheduler/jobs",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/scheduler/jobs/{job_name}/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/workers",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/workers/assign",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/workers/{worker_id}/complete",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/leader/acquire",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/leader/renew",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/leader/release",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/scaling/instances",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/scaling/assign",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-rollback/request",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-promotion/promote",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/release-rollback/complete",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/scaling/instances/{instance_id}/release",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/dead-letters/{item_id}/replay",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/{item_id}/mark-delivered",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/{item_id}/mark-failed",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/requeue-due-retries",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/batch-summary",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/template-preview",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/snooze",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/notification-outbox/mute-channel",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/sources",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/raw-offers",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/normalize",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/price-snapshots",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/runs",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion/runs/{run_id}/complete",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion-execution/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion-execution/jobs",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion-execution/jobs/{job_id}/execute",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-ingestion-execution/quarantine/{quarantine_id}/replay",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-runtime/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-runtime/execute",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/credential-profiles",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/validate-items",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/retry",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/retry/{operation_key}/reset",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/schedules",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/schedules/{schedule_id}/mark-run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/connector-operations/metrics",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-expansion/normalize",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-expansion/normalize-batch",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-expansion/score",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/http-connectors/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/http-connectors/robots-policy",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/http-connectors/fixture-responses",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/http-connectors/execute",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/production-http/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/production-http/fixture-pages",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/production-http/execute",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/anomaly",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/freshness",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/currency",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/reconcile",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/best-offer",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/price-quality/pipeline",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/history",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/discount-truth",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/confidence",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/rank",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/recommendation",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-intelligence/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-operations/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-operations/watchlist",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-operations/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/deals",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/deals/{deal_id}/decision-versions",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/deals/{deal_id}/transition",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/watch-policies",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-lifecycle/watch-policies/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/records",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/records/{deal_id}/snapshots",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/records/{deal_id}/checkpoints",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/records/{deal_id}/archive",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-persistence/snapshots/{snapshot_id}/recover",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/records",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/transactions",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/outbox/{event_id}/publish",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/retention/purge",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/integrity/audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/backups",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage/backups/{manifest_id}/verify",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/records",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/transactions",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/outbox/claim",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/outbox/{event_id}/publish",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/retention/purge",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/integrity/audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/backups",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-sql/backups/{manifest_id}/verify",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/outbox",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/outbox/claim",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/outbox/{event_id}/published",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/outbox/{event_id}/failed",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/dead-letters/{dead_letter_id}/replay",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/backup-exports",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/backup-exports/{export_id}/validate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-resilience/health",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/worker/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/backup-schedules",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/backup-schedules/{schedule_id}/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/restore-drills",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/health-dashboard",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-storage-operations/notification-bridge",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/worker-leases",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/worker-leases/{worker_id}/heartbeat",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/worker-leases/{worker_id}/release",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/backups",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/backups/retention-evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/restore-approvals",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/restore-approvals/{approval_id}/decision",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/dr-plans",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/dr-plans/{plan_id}/tests",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-reliability/slo-samples",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/capacity",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/encryption-policies",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/encryption-compliance",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/access-events",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/maintenance-windows",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/maintenance-windows/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/storage-production-readiness/readiness",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-pipeline/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/commerce-pipeline/run",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-feed/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-feed/ingest",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-feed/query",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notifications/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notifications/preferences",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notifications/build",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notifications/{notification_id}/delivered",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/delivery-attempts",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/idempotency/reserve",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/escalations",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/escalations/{escalation_id}/complete",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/digests",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-operations/engagement",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/providers",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/delivery-policy/evaluate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/subscriptions",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/experiments",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/deal-notification-providers/performance",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/fatigue",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/deliveries",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/frequency-cap",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/provider-health",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/provider-fallback",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/delivery-sla",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/feedback",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/acceptance-metrics",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/false-positive",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/source-trust",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/feedback-summary",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/budget-policy",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/category-quota",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/saved-searches",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/compare-deals",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/purchase-intents",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/conversions",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/affiliate-disclosure",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/sponsored-compliance",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/recommendation-audit",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/consumer-trust/trust-dashboard",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/savings/calculate",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/savings/events",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/price-trend",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/purchase-timing",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/target-price",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/alternatives",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/price-alert",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/watch",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/watch/expire",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/decision/explain",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/decision/consistency",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/journey/events",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/journey/funnel",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/recommendation-value",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/churn-risk",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/retention-action",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/purchases",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/repeat-purchase",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/user-value/dashboard",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/growth-intelligence/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/growth-intelligence/{operation}",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/production-launch/clear",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/production-launch/{operation}",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/amazon-connector/search",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/amazon-connector/items",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/amazon-connector/collect",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-connectors/search",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-connectors/ebay/search",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-connectors/idealo/feed",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "path": "/api/v1/marketplace-connectors/affiliate/click",
+        "methods": [
+          "POST"
+        ]
+      }
+    ]
+  },
+  "redacted_environment": {
+    "APP_ENV": "production",
+    "POSTGRES_USER": "aici",
+    "POSTGRES_PASSWORD": "<REDACTED>",
+    "POSTGRES_DB": "aici",
+    "DATABASE_URL": "postgresql+asyncpg://aici:12345678@db:5432/aici",
+    "REDIS_URL": "redis://redis:6379/0",
+    "JWT_SECRET": "<REDACTED>",
+    "CORS_ALLOWED_ORIGINS": "http://localhost:3000",
+    "AICI_API_PORT": "18000",
+    "LOG_LEVEL": "INFO",
+    "TRUST_PROXY_HEADERS": "true",
+    "ALLUSERSPROFILE": "C:\\ProgramData",
+    "AMAZON_FIXTURE_PATH": "tests/fixtures/amazon_search_m5.json",
+    "APPDATA": "C:\\Users\\istanbul\\AppData\\Roaming",
+    "CHOCOLATEYINSTALL": "C:\\ProgramData\\chocolatey",
+    "CHOCOLATEYLASTPATHUPDATE": "133877628780397810",
+    "COMMONPROGRAMFILES": "C:\\Program Files\\Common Files",
+    "COMMONPROGRAMFILES(X86)": "C:\\Program Files (x86)\\Common Files",
+    "COMMONPROGRAMW6432": "C:\\Program Files\\Common Files",
+    "COMPOSE_DOCKER_CLI_BUILD": "1",
+    "COMPUTERNAME": "ISTANBUL",
+    "COMSPEC": "C:\\WINDOWS\\system32\\cmd.exe",
+    "DOCKER_BUILDKIT": "1",
+    "DRIVERDATA": "C:\\Windows\\System32\\Drivers\\DriverData",
+    "EXTERNAL_CONNECTOR_FIXTURE_MODE": "true",
+    "HOMEDRIVE": "C:",
+    "HOMEPATH": "\\Users\\istanbul",
+    "LOCALAPPDATA": "C:\\Users\\istanbul\\AppData\\Local",
+    "LOGONSERVER": "\\\\ISTANBUL",
+    "MEDIAMARKT_FIXTURE_PATH": "tests/fixtures/mediamarkt_search_m5.json",
+    "NUMBER_OF_PROCESSORS": "8",
+    "ONEDRIVE": "C:\\Users\\istanbul\\OneDrive",
+    "ONEDRIVECONSUMER": "C:\\Users\\istanbul\\OneDrive",
+    "OS": "Windows_NT",
+    "PATH": "C:\\Users\\istanbul\\Desktop\\docker\\indirim_uygulamasi\\AI_Consumer_Intelligence_Unified_Backend_v0_6_Stabilized\\.venv\\Scripts;C:\\Python313\\Scripts\\;C:\\Python313\\;c:\\Users\\istanbul\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\dotnet\\;C:\\ProgramData\\chocolatey\\bin;C:\\Users\\istanbul\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Ollama;C:\\Users\\istanbul\\AppData\\Local\\Muse Hub\\lib;C:\\Users\\istanbul\\AppData\\Roaming\\npm;C:\\Program Files\\Graphviz\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\ruffle\\bin\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\nodejs\\;C:\\Users\\istanbul\\.local\\bin;C:\\Users\\istanbul\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Ollama;C:\\Users\\istanbul\\AppData\\Local\\Muse Hub\\lib;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Antigravity IDE\\bin;C:\\Users\\istanbul\\AppData\\Roaming\\npm",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL",
+    "PROCESSOR_ARCHITECTURE": "AMD64",
+    "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "PROCESSOR_LEVEL": "6",
+    "PROCESSOR_REVISION": "8e0c",
+    "PROGRAMDATA": "C:\\ProgramData",
+    "PROGRAMFILES": "C:\\Program Files",
+    "PROGRAMFILES(X86)": "C:\\Program Files (x86)",
+    "PROGRAMW6432": "C:\\Program Files",
+    "PSEXECUTIONPOLICYPREFERENCE": "Bypass",
+    "PSMODULEPATH": "C:\\Users\\istanbul\\Documents\\WindowsPowerShell\\Modules;C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules",
+    "PUBLIC": "C:\\Users\\Public",
+    "PYTHONPATH": ".",
+    "SESSIONNAME": "Console",
+    "SYSTEMDRIVE": "C:",
+    "SYSTEMROOT": "C:\\WINDOWS",
+    "TEMP": "C:\\Users\\istanbul\\AppData\\Local\\Temp",
+    "TMP": "C:\\Users\\istanbul\\AppData\\Local\\Temp",
+    "USERDOMAIN": "ISTANBUL",
+    "USERDOMAIN_ROAMINGPROFILE": "ISTANBUL",
+    "USERNAME": "istanbul",
+    "USERPROFILE": "C:\\Users\\istanbul",
+    "VIRTUAL_ENV": "C:\\Users\\istanbul\\Desktop\\docker\\indirim_uygulamasi\\AI_Consumer_Intelligence_Unified_Backend_v0_6_Stabilized\\.venv",
+    "VIRTUAL_ENV_PROMPT": ".venv",
+    "WINDIR": "C:\\WINDOWS",
+    "WSLENV": "WT_SESSION:WT_PROFILE_ID:",
+    "WT_PROFILE_ID": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "WT_SESSION": "c1251f52-8b2a-42b5-8853-bdeca33f7100",
+    "ZES_ENABLE_SYSMAN": "1",
+    "_OLD_VIRTUAL_PATH": "C:\\Python313\\Scripts\\;C:\\Python313\\;c:\\Users\\istanbul\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\dotnet\\;C:\\ProgramData\\chocolatey\\bin;C:\\Users\\istanbul\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Ollama;C:\\Users\\istanbul\\AppData\\Local\\Muse Hub\\lib;C:\\Users\\istanbul\\AppData\\Roaming\\npm;C:\\Program Files\\Graphviz\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\ruffle\\bin\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\nodejs\\;C:\\Users\\istanbul\\.local\\bin;C:\\Users\\istanbul\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Ollama;C:\\Users\\istanbul\\AppData\\Local\\Muse Hub\\lib;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\istanbul\\AppData\\Local\\Programs\\Antigravity IDE\\bin;C:\\Users\\istanbul\\AppData\\Roaming\\npm",
+    "__PSLOCKDOWNPOLICY": "0"
+  }
+}
