@@ -64,6 +64,32 @@ class OfferRepository:
         await self.db.refresh(offer)
         return offer
 
+    async def list_product_ids_with_offers(self, limit: int | None = None):
+        # CLIENT-002d: gercek deal-feed'in kaynak taramasi -- hangi
+        # urunlerin en az bir gercekten ingest edilmis teklifi var, bunu
+        # bulmak icin. is_real_data filtresi burada YAPILMAZ (JSONB alani,
+        # bu codebase'in kurulu deseni Python tarafinda filtrelemek --
+        # bkz. PriceRepository.list_for_product) -- cagiran taraf
+        # (RealDealFeedSourceService) her urun icin gercek teklifleri ayrica
+        # filtreliyor.
+        stmt = (
+            select(Offer.product_id)
+            .join(Price, Price.offer_id == Offer.id)
+            .where(
+                Offer.deleted_at.is_(None),
+                Offer.is_active.is_(True),
+                Price.deleted_at.is_(None),
+            )
+            .distinct()
+            .order_by(Offer.product_id)
+        )
+
+        if limit:
+            stmt = stmt.limit(limit)
+
+        result = await self.db.execute(stmt)
+        return [row[0] for row in result.all()]
+
     async def list_for_product_with_store(self, product_id, limit: int | None = None):
         # CLIENT-000b: shopping_pipeline'in arama adimini gercek ingestion'a
         # baglamak icin -- bir urunun gercekten ingest edilmis teklif+magaza

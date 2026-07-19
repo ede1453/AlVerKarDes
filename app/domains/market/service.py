@@ -102,6 +102,9 @@ class MarketService:
             "points": [{"price": f"{amount:.2f}"} for amount in amounts],
         }
 
+    async def list_product_ids_with_offers(self, limit: int | None = None):
+        return await self.offer_repo.list_product_ids_with_offers(limit=limit)
+
     async def get_offers_with_latest_price_for_product(self, product_id, limit: int | None = None):
         # CLIENT-000b: shopping_pipeline'in arama adiminin (ve
         # GET /market/products/{id}/offers'in) tek gercek veri kaynagi --

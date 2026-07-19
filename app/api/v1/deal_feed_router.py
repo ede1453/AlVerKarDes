@@ -1,9 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
+from app.domains.deal_feed.real_source_service import RealDealFeedSourceService
 from app.domains.deal_feed.service import (
+    DealFeedBuilder,
     DealFeedService,
 )
 
@@ -44,11 +48,27 @@ def ingest_deals(
 
 
 @router.post("/query")
-def query_deal_feed(
+async def query_deal_feed(
     payload: FeedRequest,
+    db: AsyncSession = Depends(get_db),
 ):
-    return _service.get_feed(
-        **payload.model_dump()
+    # CLIENT-002d: gercekten ingest edilmis market.Price verisine baglandi
+    # -- eskiden burasi sadece _service._deals'a (POST /deal-feed/ingest ile
+    # elle beslenen, hicbir gercek connector'a bagli olmayan in-memory bir
+    # depo) bakiyordu, hic ingest edilmemis olsa bile hicbir sey uydurmuyordu
+    # ama gercek veriye de hic bagli degildi -- kullanici arayuzunde "gercek
+    # firsat" olarak sunulamazdi. Skorlama/dedup/kisisellestirme motoru
+    # (DealFeedBuilder) DEGISMEDI, hala tests/test_rc205_deal_feed_service.py
+    # ile ayni sekilde birim test ediliyor -- sadece girdisi artik gercek.
+    # /deal-feed/ingest ve /deal-feed/deals/{deal_id} bu turda dokunulmadi,
+    # hala eski in-memory _service uzerinden calisiyor (bilinen, kayitli bir
+    # tutarsizlik -- bkz. WIKI_ROOT).
+    real_deals = await RealDealFeedSourceService(db).list_real_deals()
+    return DealFeedBuilder().build(
+        deals=real_deals,
+        preferences=payload.preferences,
+        minimum_confidence=payload.minimum_confidence,
+        limit=payload.limit,
     )
 
 
