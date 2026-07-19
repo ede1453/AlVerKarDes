@@ -19,6 +19,7 @@ COPY alembic /app/alembic
 COPY alembic.ini /app/alembic.ini
 COPY tests/fixtures /app/tests/fixtures
 COPY fixtures /app/fixtures
+COPY web /app/web
 
 EXPOSE 8000
 

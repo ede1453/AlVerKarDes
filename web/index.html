@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlVerKarDes — CLIENT-001 (backend doğrulama aracı)</title>
+<link rel="stylesheet" href="/ui/style.css">
+</head>
+<body>
+<main>
+  <h1>AlVerKarDes</h1>
+  <p class="subtitle">CLIENT-001 — minimal backend doğrulama arayüzü. Bu, son kullanıcı ürünü değildir (bkz. CLIENT-002).</p>
+
+  <section id="auth-panel" class="panel">
+    <div class="row" style="justify-content: space-between;">
+      <h2 style="margin:0;">Hesap</h2>
+      <div id="whoami" class="whoami hidden">
+        <span id="whoami-email"></span> · <a class="logout" id="logout-link">çıkış</a>
+      </div>
+    </div>
+
+    <div id="auth-forms">
+      <div class="row">
+        <button id="tab-login" type="button">Giriş yap</button>
+        <button id="tab-register" type="button" class="secondary">Kayıt ol</button>
+      </div>
+
+      <form id="login-form">
+        <label for="login-email">E-posta</label>
+        <input id="login-email" type="email" required autocomplete="username">
+        <label for="login-password">Şifre</label>
+        <input id="login-password" type="password" required autocomplete="current-password">
+        <button type="submit" id="login-submit">Giriş yap</button>
+      </form>
+
+      <form id="register-form" class="hidden">
+        <label for="register-email">E-posta</label>
+        <input id="register-email" type="email" required autocomplete="username">
+        <label for="register-password">Şifre (en az 8 karakter)</label>
+        <input id="register-password" type="password" required minlength="8" autocomplete="new-password">
+        <button type="submit" id="register-submit">Kayıt ol</button>
+      </form>
+
+      <div id="auth-msg" class="msg"></div>
+    </div>
+  </section>
+
+  <section id="search-panel" class="panel hidden">
+    <h2>Ürün ara</h2>
+    <form id="search-form">
+      <label for="search-query">Ürün adı</label>
+      <input id="search-query" type="text" placeholder="ör. Example Laptop" required>
+      <button type="submit" id="search-submit">Ara</button>
+    </form>
+    <div id="search-msg" class="msg"></div>
+  </section>
+
+  <section id="result-panel" class="panel hidden">
+    <h2>Sonuç</h2>
+    <div id="result-body"></div>
+  </section>
+</main>
+
+<script src="/ui/app.js"></script>
+</body>
+</html>

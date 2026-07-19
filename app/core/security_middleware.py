@@ -17,6 +17,18 @@ class SecurityHeadersMiddleware:
         self.headers = security_headers(
             production=production
         )
+        # CLIENT-001 (ADR-010): the CSP's original "this backend is a pure
+        # JSON API, never serves HTML/scripts" assumption stopped being true
+        # once /ui (a real static HTML+JS page) was added -- default-src
+        # 'none' silently blocked the page's <script src>/<link> under CSP,
+        # so no click handler ever ran (confirmed live: no console error,
+        # just a dead page -- CSP violations aren't always surfaced as JS
+        # exceptions). /ui only needs same-origin script/style/fetch, never
+        # inline, so this stays properly restrictive (no 'unsafe-inline').
+        self.ui_headers = dict(self.headers)
+        self.ui_headers["Content-Security-Policy"] = (
+            "default-src 'self'; frame-ancestors 'none'"
+        )
 
     async def __call__(
         self,
@@ -24,12 +36,19 @@ class SecurityHeadersMiddleware:
         receive: Receive,
         send: Send,
     ) -> None:
+        path = scope.get("path", "")
+        response_headers = (
+            self.ui_headers
+            if path.startswith("/ui")
+            else self.headers
+        )
+
         async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(
                     scope=message
                 )
-                for key, value in self.headers.items():
+                for key, value in response_headers.items():
                     if key not in headers:
                         headers[key] = value
             await send(message)

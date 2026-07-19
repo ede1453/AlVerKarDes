@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,7 @@ from fastapi.middleware.trustedhost import (
     TrustedHostMiddleware,
 )
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.api.v1.router import api_router
@@ -426,6 +428,15 @@ def create_app() -> FastAPI:
         api_router,
         prefix="/api/v1",
     )
+
+    # CLIENT-001 (ADR-010): minimal backend-verification frontend -- a
+    # single static HTML file, no build step. Mounted under /ui (not "/",
+    # which already serves the JSON root route above) so it can't shadow
+    # any API surface. Same origin as the API, so no CORS config is needed
+    # for it to call /api/v1/*.
+    web_dir = Path(__file__).resolve().parent.parent / "web"
+    if web_dir.is_dir():
+        app.mount("/ui", StaticFiles(directory=web_dir, html=True), name="ui")
 
     return app
 
