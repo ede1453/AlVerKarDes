@@ -1,3 +1,14 @@
+# Explicit project name -- without this, Compose derives it from the
+# directory name, which docker-compose.prod.yml (same directory) also
+# does. Two files with the same implicit project name but different
+# explicit network names caused `docker compose -f docker-compose.prod.yml
+# up -d` to treat this file's running containers as "orphans" of its own
+# project and attempt to reconcile/tear down alverkardes_dev's network on
+# every prod up/down cycle -- observed repeatedly as transient
+# "container ... is not connected to the network alverkardes_dev" errors.
+# See WIKI_ROOT/07-Issues-Risks/Production-Hardening-Bulguları.md.
+name: alverkardes-dev
+
 services:
   db:
     image: postgres:16
@@ -19,6 +30,10 @@ services:
 
 volumes:
   aici_pgdata:
+    # Pinned to the volume's existing physical name (created back when the
+    # implicit project name was "alverkardes") so the explicit `name:`
+    # above doesn't orphan it into a new, empty volume.
+    name: alverkardes_aici_pgdata
 
 networks:
   default:

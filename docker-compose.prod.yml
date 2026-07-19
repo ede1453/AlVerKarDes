@@ -1,3 +1,9 @@
+# Explicit project name -- see docker-compose.yml for the full incident
+# this fixes (dev/prod compose files sharing an implicit project name
+# caused repeated cross-stack orphan-container/network reconciliation
+# errors on every `up`/`down`).
+name: alverkardes-prod
+
 services:
   aici-api:
     build:
@@ -50,7 +56,13 @@ services:
 
 volumes:
   aici_postgres_prod_data:
+    # Pinned to the volume's existing physical name (see docker-compose.yml
+    # for the full incident) so the explicit `name:` above doesn't orphan
+    # it into a new, empty volume -- this exact mistake happened once
+    # already during a temporary `-p` workaround before this fix existed.
+    name: alverkardes_aici_postgres_prod_data
   aici_redis_prod_data:
+    name: alverkardes_aici_redis_prod_data
 
 networks:
   default:
