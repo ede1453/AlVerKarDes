@@ -7,6 +7,7 @@
     "nav": {
       "account": "My Account",
       "watchlist": "My Watchlist",
+      "notifications": "Notification Settings",
       "deals": "Deals",
       "logout": "Log out",
       "login": "Log in",
@@ -133,5 +134,24 @@
       "SKIP": "Skip",
       "unknown": "Unknown"
     }
+  },
+  "notificationPreferences": {
+    "heading": "Notification Settings",
+    "fetchError": "An error occurred while loading your notification settings. The backend could not be reached, please try again later.",
+    "channelsHeading": "Notification channels",
+    "channel": {
+      "in_app": "In-app",
+      "email": "Email",
+      "push": "Push"
+    },
+    "minConfidenceLabel": "Minimum confidence (%)",
+    "minDiscountLabel": "Minimum discount (%)",
+    "quietHoursEnabledLabel": "Enable quiet hours",
+    "quietHoursStartLabel": "Quiet hours start",
+    "quietHoursEndLabel": "Quiet hours end",
+    "saveButton": "Save settings",
+    "saving": "Saving...",
+    "savedMessage": "Your notification settings have been saved.",
+    "saveError": "Your settings could not be saved. Please try again later."
   }
 }

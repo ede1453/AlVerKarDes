@@ -7,6 +7,7 @@
     "nav": {
       "account": "Mein Konto",
       "watchlist": "Meine Merkliste",
+      "notifications": "Benachrichtigungseinstellungen",
       "deals": "Angebote",
       "logout": "Abmelden",
       "login": "Anmelden",
@@ -133,5 +134,24 @@
       "SKIP": "Überspringen",
       "unknown": "Unbekannt"
     }
+  },
+  "notificationPreferences": {
+    "heading": "Benachrichtigungseinstellungen",
+    "fetchError": "Beim Laden deiner Benachrichtigungseinstellungen ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "channelsHeading": "Benachrichtigungskanäle",
+    "channel": {
+      "in_app": "In der App",
+      "email": "E-Mail",
+      "push": "Push"
+    },
+    "minConfidenceLabel": "Mindestvertrauen (%)",
+    "minDiscountLabel": "Mindestrabatt (%)",
+    "quietHoursEnabledLabel": "Ruhezeiten aktivieren",
+    "quietHoursStartLabel": "Beginn der Ruhezeit",
+    "quietHoursEndLabel": "Ende der Ruhezeit",
+    "saveButton": "Einstellungen speichern",
+    "saving": "Wird gespeichert...",
+    "savedMessage": "Deine Benachrichtigungseinstellungen wurden gespeichert.",
+    "saveError": "Deine Einstellungen konnten nicht gespeichert werden. Bitte versuche es später erneut."
   }
 }

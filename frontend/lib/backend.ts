@@ -115,3 +115,23 @@ export interface DealFeedResponse {
   items: DealFeedItem[];
   metadata: Record<string, unknown>;
 }
+
+export interface NotificationPreferences {
+  user_id: string;
+  enabled_channels: string[];
+  minimum_confidence: number;
+  minimum_discount_pct: number;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  // Absent entirely when the user has never saved preferences before (the
+  // backend's default response omits this key rather than sending null) -
+  // confirmed from the real GET /deal-notifications/preferences/{user_id}
+  // contract, don't assume it's always present.
+  updated_at?: string;
+}
+
+export interface NotificationPreferencesUpdateResponse {
+  updated: boolean;
+  preferences: NotificationPreferences;
+}
