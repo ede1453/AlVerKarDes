@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 export default function LoginPage() {
   const t = useTranslations("login");
@@ -68,6 +68,9 @@ export default function LoginPage() {
           {submitting ? t("submitting") : t("submitButton")}
         </button>
       </form>
+      <p style={{ marginTop: "1rem" }}>
+        <Link href="/sifremi-unuttum">{t("forgotPasswordLink")}</Link>
+      </p>
     </div>
   );
 }

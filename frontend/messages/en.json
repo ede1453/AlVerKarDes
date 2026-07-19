@@ -65,7 +65,8 @@
     "heading": "Log in",
     "submitButton": "Log in",
     "submitting": "Logging in...",
-    "errorFallback": "Login failed ({status})"
+    "errorFallback": "Login failed ({status})",
+    "forgotPasswordLink": "Forgot your password?"
   },
   "register": {
     "heading": "Register",
@@ -96,6 +97,26 @@
     "removeButton": "Remove",
     "removing": "Removing...",
     "removeError": "The item could not be removed. Please try again later."
+  },
+  "forgotPassword": {
+    "heading": "Forgot your password?",
+    "intro": "Enter the email address linked to your account. If it matches an account, we will send a password reset link to it.",
+    "submitButton": "Send reset link",
+    "submitting": "Sending...",
+    "successMessage": "If that email address is registered, we've sent a password reset link to it. Please check your inbox (and spam folder).",
+    "rateLimitedMessage": "Too many reset requests for this email address. Please wait a while before trying again."
+  },
+  "resetPassword": {
+    "heading": "Reset your password",
+    "newPasswordLabel": "New password (12-128 characters)",
+    "confirmPasswordLabel": "Confirm new password",
+    "submitButton": "Reset password",
+    "submitting": "Resetting...",
+    "mismatchError": "The passwords do not match.",
+    "genericFailure": "The password could not be reset. Please try again.",
+    "missingTokenMessage": "This password reset link is invalid or incomplete. Please request a new one.",
+    "successMessage": "Your password has been reset. You are being redirected to the login page...",
+    "goNow": "Go now"
   },
   "deals": {
     "heading": "Deals",

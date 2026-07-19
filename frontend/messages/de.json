@@ -65,7 +65,8 @@
     "heading": "Anmelden",
     "submitButton": "Anmelden",
     "submitting": "Anmeldung läuft...",
-    "errorFallback": "Anmeldung fehlgeschlagen ({status})"
+    "errorFallback": "Anmeldung fehlgeschlagen ({status})",
+    "forgotPasswordLink": "Passwort vergessen?"
   },
   "register": {
     "heading": "Registrieren",
@@ -96,6 +97,26 @@
     "removeButton": "Entfernen",
     "removing": "Wird entfernt...",
     "removeError": "Der Eintrag konnte nicht entfernt werden. Bitte versuche es später erneut."
+  },
+  "forgotPassword": {
+    "heading": "Passwort vergessen?",
+    "intro": "Gib die E-Mail-Adresse ein, die mit deinem Konto verknüpft ist. Falls sie zu einem Konto passt, senden wir dir einen Link zum Zurücksetzen des Passworts.",
+    "submitButton": "Link senden",
+    "submitting": "Wird gesendet...",
+    "successMessage": "Falls diese E-Mail-Adresse registriert ist, haben wir einen Link zum Zurücksetzen des Passworts dorthin gesendet. Bitte überprüfe dein Postfach (auch den Spam-Ordner).",
+    "rateLimitedMessage": "Zu viele Rücksetzanfragen für diese E-Mail-Adresse. Bitte warte eine Weile, bevor du es erneut versuchst."
+  },
+  "resetPassword": {
+    "heading": "Passwort zurücksetzen",
+    "newPasswordLabel": "Neues Passwort (12–128 Zeichen)",
+    "confirmPasswordLabel": "Neues Passwort bestätigen",
+    "submitButton": "Passwort zurücksetzen",
+    "submitting": "Wird zurückgesetzt...",
+    "mismatchError": "Die Passwörter stimmen nicht überein.",
+    "genericFailure": "Das Passwort konnte nicht zurückgesetzt werden. Bitte versuche es erneut.",
+    "missingTokenMessage": "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder unvollständig. Bitte fordere einen neuen an.",
+    "successMessage": "Dein Passwort wurde zurückgesetzt. Du wirst zur Anmeldeseite weitergeleitet...",
+    "goNow": "Jetzt gehen"
   },
   "deals": {
     "heading": "Angebote",
