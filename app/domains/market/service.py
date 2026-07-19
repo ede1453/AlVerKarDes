@@ -68,3 +68,20 @@ class MarketService:
 
     async def get_price_history_for_product(self, product_id, limit: int | None = None, only_real: bool = True):
         return await self.price_repo.list_for_product(product_id, limit=limit, only_real=only_real)
+
+    async def get_offers_with_latest_price_for_product(self, product_id, limit: int | None = None):
+        # CLIENT-000b: shopping_pipeline'in arama adiminin (ve
+        # GET /market/products/{id}/offers'in) tek gercek veri kaynagi --
+        # gercekten ingest edilmis teklif+magaza+en-son-fiyat ucluleri.
+        # Fixture-mode connector verisi de dahil (is_real_data alaninda
+        # aciklaniyor) -- bu "hangi teklifler var" sorusu, deal-detection'in
+        # "hangi fiyat GERCEKTEN guvenilir" sorusundan (only_real=True,
+        # get_price_history_for_product) farkli, o filtre burada YOK.
+        pairs = await self.offer_repo.list_for_product_with_store(product_id, limit=limit)
+        results = []
+        for offer, store in pairs:
+            price = await self.price_repo.latest_for_offer(offer.id)
+            if price is None:
+                continue
+            results.append({"offer": offer, "store": store, "price": price})
+        return results

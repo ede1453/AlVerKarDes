@@ -8,6 +8,7 @@ from app.domains.notifications.notification_service import NotificationService
 from app.domains.price_prediction.price_prediction_service import PricePredictionService
 from app.domains.products.canonical_service import CanonicalProductService
 from app.domains.products.repository import ProductRepository
+from app.domains.products.service import ProductService
 from app.domains.profile_aware_recommendations.profile_aware_service import ProfileAwareRecommendationService
 from app.domains.shopping_pipeline.pipeline_models import ShoppingPipelineResult, create_pipeline_id
 from app.domains.shopping_pipeline.pipeline_serializer import serialize_pipeline_result
@@ -42,7 +43,7 @@ class ShoppingPipelineService:
     async def run(self, payload: dict, db):
         user_id = payload["user_id"]
         query = payload["query"]
-        offers = payload.get("offers") or self._default_offers(query)
+        offers = payload.get("offers") or await self._real_offers(db, query)
 
         search = self.marketplace_service.aggregate(
             {
@@ -218,23 +219,45 @@ class ShoppingPipelineService:
 
         return serialized
 
-    def _default_offers(self, query: str):
-        return [
-            {
-                "marketplace": "saturn",
-                "seller": "Saturn",
-                "product_name": f"Apple {query}",
-                "price": "949.00",
-                "currency": "EUR",
-            },
-            {
-                "marketplace": "amazon",
-                "seller": "Amazon",
-                "product_name": f"Apple {query}",
-                "price": "999.00",
-                "currency": "EUR",
-            },
-        ]
+    async def _real_offers(self, db, query: str):
+        """CLIENT-000b: eskiden burada _default_offers() vardı -- offers
+        hiç verilmediginde hardcoded "Apple {query}" @ Saturn 949.00 /
+        Amazon 999.00 dondururdu, gercek ingestion'a hic baglanmamisti
+        (CONNECT-001'in price_history icin temizledigi ayni fabrikasyon,
+        arama adiminda hayatta kalmisti -- bkz. WIKI_ROOT risk kaydi
+        Shopping-Pipeline-Sahte-Arama-Verisi-CLIENT-000).
+
+        Artik gercekten ingest edilmis urunleri arayip (ProductService,
+        GET /products/search ile ayni motor) gercek teklif+fiyat
+        cifitlerini donduruyor. Eslesen urun yoksa BOS liste doner --
+        sahte bir teklif uydurmaz; asagidaki pipeline akisi bunu
+        top=None -> status="NO_RECOMMENDATION" olarak dogru sekilde
+        isaretler (949.00 gibi uydurma bir sayi asla uretilmez)."""
+        products = await ProductService(db).search_products(query, limit=5)
+        if not products:
+            return []
+
+        offers: list[dict] = []
+        for product in products:
+            pairs = await MarketService(db).get_offers_with_latest_price_for_product(product.id)
+            for item in pairs:
+                offer, store, price = item["offer"], item["store"], item["price"]
+                offers.append(
+                    {
+                        "marketplace": store.name,
+                        "seller": store.name,
+                        "product_name": product.title,
+                        "price": str(price.amount),
+                        "currency": price.currency,
+                        "url": offer.url,
+                        "availability": price.stock_status or "UNKNOWN",
+                        "metadata": {
+                            "is_real_data": price.metadata_json.get("is_real_data", True),
+                            "offer_id": str(offer.id),
+                        },
+                    }
+                )
+        return offers
 
     def _candidates_from_canonicalization(self, *, canonicalization: dict, offers: list[dict]):
         candidates = []

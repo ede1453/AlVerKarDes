@@ -40,3 +40,29 @@ async def save_price(
 ):
     price = await MarketService(db).save_price_snapshot(payload)
     return {"id": price.id, "offer_id": price.offer_id, "amount": float(price.amount), "currency": price.currency}
+
+
+@router.get("/products/{product_id}/offers")
+async def get_product_offers(product_id, db: AsyncSession = Depends(get_db)):
+    # CLIENT-000b (ADR-010): daha önce hiç GET endpoint'i yoktu (bu router
+    # tamamen POST/yazma idi) -- frontend'in gerçek ingest edilmiş bir
+    # ürünün fiyatını okuyabileceği tek yol bu. PUBLIC: /products/search
+    # ile aynı sınıf, salt-okunur katalog verisi.
+    pairs = await MarketService(db).get_offers_with_latest_price_for_product(product_id)
+    return {
+        "product_id": product_id,
+        "offer_count": len(pairs),
+        "offers": [
+            {
+                "offer_id": item["offer"].id,
+                "store": item["store"].name,
+                "url": item["offer"].url,
+                "price": float(item["price"].amount),
+                "currency": item["price"].currency,
+                "stock_status": item["price"].stock_status,
+                "is_real_data": item["price"].metadata_json.get("is_real_data", True),
+                "observed_at": item["price"].metadata_json.get("observed_at"),
+            }
+            for item in pairs
+        ],
+    }

@@ -64,6 +64,29 @@ class OfferRepository:
         await self.db.refresh(offer)
         return offer
 
+    async def list_for_product_with_store(self, product_id, limit: int | None = None):
+        # CLIENT-000b: shopping_pipeline'in arama adimini gercek ingestion'a
+        # baglamak icin -- bir urunun gercekten ingest edilmis teklif+magaza
+        # cifti. N+1'i onlemek icin Store JOIN edilmis, fiyat ayri sorgulanir
+        # (PriceRepository.latest_for_offer, var olan desen).
+        stmt = (
+            select(Offer, Store)
+            .join(Store, Store.id == Offer.store_id)
+            .where(
+                Offer.product_id == product_id,
+                Offer.deleted_at.is_(None),
+                Offer.is_active.is_(True),
+                Store.deleted_at.is_(None),
+            )
+            .order_by(Offer.created_at.asc())
+        )
+
+        if limit:
+            stmt = stmt.limit(limit)
+
+        result = await self.db.execute(stmt)
+        return list(result.all())
+
 
 class PriceRepository:
     def __init__(self, db: AsyncSession):
