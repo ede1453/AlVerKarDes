@@ -1,7 +1,8 @@
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.commerce_ingestion.http_execution import (
     FixtureHttpTransport,
     HttpConnectorExecutionService,
@@ -49,7 +50,10 @@ class HttpExecutionRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_http_connector_state():
+def clear_http_connector_state(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     global _transport, _service
     _transport = FixtureHttpTransport()
     _service = HttpConnectorExecutionService(
@@ -61,6 +65,8 @@ def clear_http_connector_state():
 @router.post("/robots-policy")
 def set_robots_policy(
     payload: RobotsPolicyRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.robots.set_policy(
         **payload.model_dump()
@@ -70,6 +76,8 @@ def set_robots_policy(
 @router.post("/fixture-responses")
 def set_fixture_response(
     payload: FixtureResponseRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     _transport.responses[payload.url] = HttpResponse(
         status_code=payload.status_code,
@@ -83,6 +91,8 @@ def set_fixture_response(
 @router.post("/execute")
 def execute_http_connector(
     payload: HttpExecutionRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.execute(
         **payload.model_dump()
@@ -90,5 +100,9 @@ def execute_http_connector(
 
 
 @router.get("/sla/{connector_id}")
-def get_connector_sla(connector_id: str):
+def get_connector_sla(
+    connector_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.sla.get(connector_id)

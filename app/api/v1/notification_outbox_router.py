@@ -1,6 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.core.internal_service_auth import require_internal_service_key
+from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
+from app.domains.identity.models import UserRole
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
@@ -83,27 +86,44 @@ _service = NotificationOutboxService()
 
 
 @router.post("/enqueue")
-def enqueue_notification(payload: dict):
+def enqueue_notification(
+    payload: dict,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.enqueue(payload)
 
 
 @router.post("/enqueue-many")
-def enqueue_many_notifications(payload: dict):
+def enqueue_many_notifications(
+    payload: dict,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.enqueue_many(payload.get("items", []))
 
 
 @router.get("/pending")
-def list_pending_notifications(limit: int = 50):
+def list_pending_notifications(
+    limit: int = 50,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.list_pending(limit=limit)
 
 @router.get("/readiness/status")
-def get_production_readiness_status():
+def get_production_readiness_status(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_production_readiness()
 
 
 @router.post("/readiness/checks")
 def update_production_readiness_check(
     payload: ReadinessCheckRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.set_readiness_check(
         check_name=payload.check_name,
@@ -112,13 +132,18 @@ def update_production_readiness_check(
     )
 
 @router.get("/release-manifest")
-def get_release_manifest():
+def get_release_manifest(
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.get_release_manifest()
 
 
 @router.post("/release-manifest/publish")
 def publish_release_manifest(
     payload: ReleaseManifestRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.publish_release_manifest(
         release_version=payload.release_version,
@@ -130,6 +155,8 @@ def publish_release_manifest(
 def get_release_audit_events(
     event_type: str | None = None,
     limit: int = 100,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.get_release_audit_trail(
         event_type=event_type,
@@ -137,18 +164,29 @@ def get_release_audit_events(
     )
 
 @router.get("/release-approval/status")
-def get_release_approval_status():
+def get_release_approval_status(
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.get_release_approval_status()
 
 @router.post("/release-approval/approve")
-def approve_release(payload: ReleaseApprovalRequest):
+def approve_release(
+    payload: ReleaseApprovalRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.approve_release(
         approved_by=payload.approved_by,
         notes=payload.notes,
     )
 
 @router.post("/release-approval/revoke")
-def revoke_release_approval(payload: ReleaseApprovalRevokeRequest):
+def revoke_release_approval(
+    payload: ReleaseApprovalRevokeRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.revoke_release_approval(
         revoked_by=payload.revoked_by,
         reason=payload.reason,
@@ -157,6 +195,8 @@ def revoke_release_approval(payload: ReleaseApprovalRevokeRequest):
 @router.post("/release-audit/events")
 def record_release_audit_event(
     payload: ReleaseAuditEventRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.record_release_audit_event(
         event_type=payload.event_type,
@@ -165,23 +205,40 @@ def record_release_audit_event(
     )
 
 @router.post("/claim-next")
-def claim_next_notification():
+def claim_next_notification(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.claim_next()
 
 @router.get("/dead-letters")
-def list_dead_letter_notifications(limit: int = 50):
+def list_dead_letter_notifications(
+    limit: int = 50,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.list_dead_letters(limit=limit)
 
 @router.get("/metrics")
-def get_notification_outbox_metrics():
+def get_notification_outbox_metrics(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_metrics()
 
 @router.get("/channel-health")
-def get_notification_channel_health():
+def get_notification_channel_health(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_channel_health()
 
 @router.get("/circuit-breaker/status")
-def get_notification_circuit_breaker_status(failure_threshold: int = 3):
+def get_notification_circuit_breaker_status(
+    failure_threshold: int = 3,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_circuit_breaker_status(
         failure_threshold=failure_threshold
     )
@@ -189,13 +246,20 @@ def get_notification_circuit_breaker_status(failure_threshold: int = 3):
 @router.get("/circuit-breaker/can-deliver")
 def can_deliver_notification_with_circuit_breaker(
     failure_threshold: int = 3,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.can_deliver_notifications(
         failure_threshold=failure_threshold
     )
 
 @router.get("/digest/{user_id}")
-def get_notification_digest(user_id: str, limit: int = 20):
+def get_notification_digest(
+    user_id: str,
+    limit: int = 20,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.build_digest_summary(
         user_id=user_id,
         limit=limit,
@@ -209,7 +273,9 @@ def check_notification_quiet_hours(
     start_hour: int = 22,
     end_hour: int = 8,
     enabled: bool = True,
+    current_user=Depends(get_current_user),
 ):
+    ensure_owner(current_user, user_id)
     return _service.check_quiet_hours(
         user_id=user_id,
         current_hour=current_hour,
@@ -219,12 +285,17 @@ def check_notification_quiet_hours(
     )
 
 @router.get("/scheduler/status")
-def get_background_scheduler_status():
+def get_background_scheduler_status(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_scheduler_status()
 
 @router.post("/scheduler/jobs")
 def register_background_scheduler_job(
     payload: ScheduledJobRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.register_scheduled_job(
         job_name=payload.job_name,
@@ -233,19 +304,28 @@ def register_background_scheduler_job(
     )
 
 @router.post("/scheduler/jobs/{job_name}/run")
-def run_background_scheduler_job(job_name: str):
+def run_background_scheduler_job(
+    job_name: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.run_scheduled_job(
         job_name=job_name
     )
 
 @router.get("/workers/status")
-def get_distributed_worker_status():
+def get_distributed_worker_status(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_worker_status()
 
 
 @router.post("/workers")
 def register_distributed_worker(
     payload: WorkerRegistrationRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.register_worker(
         worker_id=payload.worker_id,
@@ -257,6 +337,8 @@ def register_distributed_worker(
 @router.post("/workers/assign")
 def assign_distributed_worker_job(
     payload: WorkerAssignmentRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.assign_job_to_worker(
         job_id=payload.job_id
@@ -267,6 +349,8 @@ def assign_distributed_worker_job(
 def complete_distributed_worker_job(
     worker_id: str,
     payload: WorkerCompletionRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.complete_worker_job(
         worker_id=worker_id,
@@ -274,13 +358,18 @@ def complete_distributed_worker_job(
     )
 
 @router.get("/leader/status")
-def get_notification_leader_status():
+def get_notification_leader_status(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_leader_status()
 
 
 @router.post("/leader/acquire")
 def acquire_notification_leadership(
     payload: LeadershipLeaseRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.acquire_leadership(
         worker_id=payload.worker_id,
@@ -291,6 +380,8 @@ def acquire_notification_leadership(
 @router.post("/leader/renew")
 def renew_notification_leadership(
     payload: LeadershipLeaseRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.renew_leadership(
         worker_id=payload.worker_id,
@@ -301,19 +392,26 @@ def renew_notification_leadership(
 @router.post("/leader/release")
 def release_notification_leadership(
     payload: LeadershipReleaseRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.release_leadership(
         worker_id=payload.worker_id
     )
 
 @router.get("/scaling/instances/status")
-def get_horizontal_scaling_status():
+def get_horizontal_scaling_status(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_instance_status()
 
 
 @router.post("/scaling/instances")
 def register_horizontal_scaling_instance(
     payload: ScalingInstanceRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.register_instance(
         instance_id=payload.instance_id,
@@ -325,19 +423,26 @@ def register_horizontal_scaling_instance(
 @router.post("/scaling/assign")
 def assign_horizontal_scaling_request(
     payload: ScalingAssignmentRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.assign_instance_load(
         request_id=payload.request_id
     )
 
 @router.get("/release-rollback/status")
-def get_release_rollback_status():
+def get_release_rollback_status(
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.get_release_rollback_status()
 
 
 @router.post("/release-rollback/request")
 def request_release_rollback(
     payload: ReleaseRollbackRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.request_release_rollback(
         requested_by=payload.requested_by,
@@ -345,13 +450,18 @@ def request_release_rollback(
     )
 
 @router.get("/release-promotion/status")
-def get_release_promotion_status():
+def get_release_promotion_status(
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
+):
     return _service.get_release_promotion_status()
 
 
 @router.post("/release-promotion/promote")
 def promote_release(
     payload: ReleasePromotionRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.promote_release(
         environment=payload.environment,
@@ -361,6 +471,8 @@ def promote_release(
 @router.post("/release-rollback/complete")
 def complete_release_rollback(
     payload: ReleaseRollbackCompleteRequest,
+    # AUTH-006 Parça 3 (ADR-005): RELEASE_MANAGER+ gerektirir (release lifecycle).
+    current_user=Depends(require_role(UserRole.RELEASE_MANAGER)),
 ):
     return _service.complete_release_rollback(
         completed_by=payload.completed_by
@@ -372,6 +484,8 @@ def complete_release_rollback(
 def release_horizontal_scaling_request(
     instance_id: str,
     payload: ScalingReleaseRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.release_instance_load(
         instance_id=instance_id,
@@ -379,7 +493,12 @@ def release_horizontal_scaling_request(
     )
 
 @router.post("/dead-letters/{item_id}/replay")
-def replay_dead_letter_notification(item_id: str, payload: dict | None = None):
+def replay_dead_letter_notification(
+    item_id: str,
+    payload: dict | None = None,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     payload = payload or {}
     return _service.replay_dead_letter(
         item_id=item_id,
@@ -388,12 +507,21 @@ def replay_dead_letter_notification(item_id: str, payload: dict | None = None):
     )
 
 @router.post("/{item_id}/mark-delivered")
-def mark_notification_delivered(item_id: str):
+def mark_notification_delivered(
+    item_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.mark_delivered(item_id)
 
 
 @router.post("/{item_id}/mark-failed")
-def mark_notification_failed(item_id: str, payload: dict):
+def mark_notification_failed(
+    item_id: str,
+    payload: dict,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.mark_failed(
         item_id=item_id,
         error=payload.get("error", "UNKNOWN_ERROR"),
@@ -401,52 +529,102 @@ def mark_notification_failed(item_id: str, payload: dict):
     )
 
 @router.post("/clear")
-def clear_notification_outbox():
+def clear_notification_outbox(
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     _service.repository.clear()
     return {"cleared": True, "metadata": {"outbox_version": "notification_outbox_v1"}}
 
 @router.post("/requeue-due-retries")
-def requeue_due_notification_retries(limit: int = 50):
+def requeue_due_notification_retries(
+    limit: int = 50,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.requeue_due_retries(limit=limit)
 
 @router.get("/rate-limit/{user_id}")
-def get_rate_limit(user_id:str, limit:int=5):
+def get_rate_limit(
+    user_id: str,
+    limit: int = 5,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.check_rate_limit(user_id,limit)
 
 @router.get("/tenant-quota/{tenant_id}")
-def tenant_quota(tenant_id:str, limit:int=100):
+def tenant_quota(
+    tenant_id: str,
+    limit: int = 100,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.check_tenant_quota(tenant_id, limit)
 
 @router.get("/priority-queue/{priority}")
-def priority_queue(priority:str):
+def priority_queue(
+    priority: str,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.get_priority_queue(priority)
 
 @router.post("/batch-summary")
-def batch_summary(payload: BatchSummaryRequest):
+def batch_summary(
+    payload: BatchSummaryRequest,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.batch_delivery_summary(
         payload.notification_ids
     )
 
 @router.post("/template-preview")
-def template_preview(payload: dict):
+def template_preview(
+    payload: dict,
+    # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
+    current_user=Depends(require_role(UserRole.OPERATOR)),
+):
     return _service.notification_template_preview(
         payload["template"],
         payload.get("variables", {}),
     )
 
 @router.get("/preferences/{user_id}")
-def notification_preferences(user_id: str):
+def notification_preferences(
+    user_id: str,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, user_id)
     return _service.get_user_notification_preferences(user_id)
 
 @router.post("/snooze")
-def snooze_notification(payload: dict):
+def snooze_notification(
+    payload: dict,
+    current_user=Depends(get_current_user),
+):
+    # AUTH-006 Parça 2 bug fix: snooze_notification() önceden var olan
+    # repository lookup'ını hiç kullanmayan bir stub'du (hep "SNOOZED"
+    # dönerdi, sahiplik kontrolü mümkün değildi). Artık gerçek kaydı önce
+    # buradan çekip sahiplik kontrolü yapıyoruz, tıpkı deal-notifications'ın
+    # {id}/delivered ucundaki gibi (bkz. ADR-005).
+    notification_id = payload["notification_id"]
+    item = _service.get_notification(notification_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="notification_not_found")
+    ensure_owner(current_user, item.user_id)
     return _service.snooze_notification(
-        payload["notification_id"],
+        notification_id,
         payload["until"]
     )
 
 @router.post("/mute-channel")
-def mute_channel(payload: dict):
+def mute_channel(
+    payload: dict,
+    current_user=Depends(get_current_user),
+):
+    ensure_owner(current_user, payload["user_id"])
     return _service.mute_notification_channel(
         payload["user_id"],
         payload["channel"],

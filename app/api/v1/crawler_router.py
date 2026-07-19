@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.crawler.crawler_service import CrawlerService
 
 
@@ -19,5 +20,9 @@ _service = CrawlerService()
 
 
 @router.post("/crawl")
-async def crawl_url(payload: CrawlRequestModel):
+async def crawl_url(
+    payload: CrawlRequestModel,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.crawl(payload.model_dump())

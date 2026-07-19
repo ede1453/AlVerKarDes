@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.provider_scheduler.provider_scheduler_service import (
     ProviderSchedulerService,
 )
@@ -19,17 +20,28 @@ _service = ProviderSchedulerService()
 
 
 @router.post("")
-async def create_provider_schedule(payload: ProviderScheduleCreateRequest):
+async def create_provider_schedule(
+    payload: ProviderScheduleCreateRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.create(payload.model_dump())
 
 
 @router.get("")
-async def list_provider_schedules():
+async def list_provider_schedules(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return {"items": _service.list()}
 
 
 @router.get("/{schedule_id}")
-async def get_provider_schedule(schedule_id: str):
+async def get_provider_schedule(
+    schedule_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     result = _service.get(schedule_id)
     if result is None:
         raise HTTPException(status_code=404, detail="provider_schedule_not_found")
@@ -37,7 +49,11 @@ async def get_provider_schedule(schedule_id: str):
 
 
 @router.post("/{schedule_id}/run-once")
-async def run_provider_schedule_once(schedule_id: str):
+async def run_provider_schedule_once(
+    schedule_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     result = _service.run_once(schedule_id)
     if result is None:
         raise HTTPException(status_code=404, detail="provider_schedule_not_found")
@@ -45,5 +61,8 @@ async def run_provider_schedule_once(schedule_id: str):
 
 
 @router.post("/clear")
-async def clear_provider_schedules():
+async def clear_provider_schedules(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.clear()

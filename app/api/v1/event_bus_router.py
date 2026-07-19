@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.events.event_bus_service import EventBusService
 from app.domains.events.event_repository_factory import get_event_repository
 
@@ -18,7 +19,11 @@ _service = EventBusService(repository=get_event_repository())
 
 
 @router.post("/publish")
-async def publish_event(payload: EventPublishRequest):
+async def publish_event(
+    payload: EventPublishRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.publish(payload.model_dump())
 
 
@@ -27,6 +32,8 @@ async def list_events(
     limit: int = Query(default=50, ge=1, le=200),
     event_type: str | None = None,
     source: str | None = None,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return {
         "items": _service.list_recent(
@@ -41,10 +48,16 @@ async def list_events(
 
 
 @router.get("/status")
-async def event_bus_status():
+async def event_bus_status(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.status()
 
 
 @router.post("/clear")
-async def clear_events():
+async def clear_events(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.clear()

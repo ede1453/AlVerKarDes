@@ -1,8 +1,9 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.deal_persistence.service import (
     DealPersistenceService,
 )
@@ -43,7 +44,10 @@ class RecoveryRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_deal_persistence():
+def clear_deal_persistence(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     global _service
     _service = DealPersistenceService()
     return {"cleared": True}
@@ -52,6 +56,8 @@ def clear_deal_persistence():
 @router.post("/records")
 def persist_deal(
     payload: PersistDealRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.persist_deal(
         **payload.model_dump()
@@ -59,7 +65,11 @@ def persist_deal(
 
 
 @router.get("/records/{deal_id}")
-def get_record(deal_id: str):
+def get_record(
+    deal_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     record = _service.get_record(deal_id)
 
     if record is None:
@@ -77,6 +87,8 @@ def get_record(deal_id: str):
 def create_snapshot(
     deal_id: str,
     payload: SnapshotRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.create_snapshot(
         deal_id=deal_id,
@@ -85,7 +97,11 @@ def create_snapshot(
 
 
 @router.get("/snapshots/{snapshot_id}")
-def get_snapshot(snapshot_id: str):
+def get_snapshot(
+    snapshot_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     snapshot = _service.get_snapshot(
         snapshot_id
     )
@@ -105,6 +121,8 @@ def get_snapshot(snapshot_id: str):
 def create_checkpoint(
     deal_id: str,
     payload: CheckpointRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.create_checkpoint(
         deal_id=deal_id,
@@ -117,6 +135,8 @@ def create_checkpoint(
 )
 def get_latest_checkpoint(
     deal_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     checkpoint = _service.latest_checkpoint(
         deal_id
@@ -137,6 +157,8 @@ def get_latest_checkpoint(
 def archive_deal(
     deal_id: str,
     payload: ArchiveRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.archive_deal(
         deal_id=deal_id,
@@ -145,7 +167,10 @@ def archive_deal(
 
 
 @router.get("/archives")
-def list_archives():
+def list_archives(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return _service.list_archives()
 
 
@@ -155,6 +180,8 @@ def list_archives():
 def recover_snapshot(
     snapshot_id: str,
     payload: RecoveryRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.recover_from_snapshot(
         snapshot_id=snapshot_id,
@@ -167,6 +194,8 @@ def recover_snapshot(
 @router.get("/recovery-events")
 def list_recovery_events(
     deal_id: str | None = None,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.list_recovery_events(
         deal_id=deal_id

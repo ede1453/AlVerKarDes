@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.connectors.ingestion_service import ConnectorIngestionService
 from app.domains.connectors.manager import ConnectorManager
 from app.domains.connectors.manual_connector import ManualConnector
@@ -36,7 +37,13 @@ def build_demo_manager() -> ConnectorManager:
 
 
 @router.post("/ingest")
-async def ingest_connector_results(query: str, country: str = "DE", db: AsyncSession = Depends(get_db)):
+async def ingest_connector_results(
+    query: str,
+    country: str = "DE",
+    db: AsyncSession = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     service = ConnectorIngestionService(db=db, manager=build_demo_manager())
     result = await service.search_and_ingest(query=query, country=country)
     return {

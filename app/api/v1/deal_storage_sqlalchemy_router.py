@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.deal_storage.sqlalchemy_repository import (
     SQLAlchemyDealStorageRepository,
 )
@@ -49,6 +50,8 @@ class BackupRequest(BaseModel):
 def upsert_record(
     payload: RecordRequest,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db
@@ -61,6 +64,8 @@ def upsert_record(
 def get_record(
     deal_id: str,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     record = SQLAlchemyDealStorageRepository(
         db
@@ -79,6 +84,8 @@ def get_record(
 def save_transaction(
     payload: TransactionRequest,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db
@@ -91,6 +98,8 @@ def save_transaction(
 def claim_outbox(
     limit: int = 100,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     events = SQLAlchemyDealStorageRepository(
         db
@@ -106,6 +115,8 @@ def claim_outbox(
 def publish_event(
     event_id: str,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     event = SQLAlchemyDealStorageRepository(
         db
@@ -124,6 +135,8 @@ def publish_event(
 def purge_records(
     payload: PurgeRequest,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db
@@ -136,6 +149,8 @@ def purge_records(
 @router.post("/integrity/audit")
 def audit_integrity(
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db
@@ -146,6 +161,8 @@ def audit_integrity(
 def create_backup(
     payload: BackupRequest,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db
@@ -158,6 +175,8 @@ def create_backup(
 def verify_backup(
     manifest_id: str,
     db: Session = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return SQLAlchemyDealStorageRepository(
         db

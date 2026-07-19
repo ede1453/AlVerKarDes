@@ -1,8 +1,9 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.commerce_ingestion.runtime import (
     ConnectorRuntimeService,
 )
@@ -27,7 +28,10 @@ class ConnectorExecutionRequest(BaseModel):
 
 
 @router.post("/clear")
-def clear_connector_runtime():
+def clear_connector_runtime(
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     global _service
     _service = ConnectorRuntimeService()
     return {"cleared": True}
@@ -36,6 +40,8 @@ def clear_connector_runtime():
 @router.post("/execute")
 def execute_connector(
     payload: ConnectorExecutionRequest,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.execute_connector(
         source_id=payload.source_id,
@@ -48,7 +54,11 @@ def execute_connector(
 
 
 @router.get("/runs/{run_id}")
-def get_connector_run(run_id: str):
+def get_connector_run(
+    run_id: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     run = _service.get_run(run_id)
     if run is None:
         raise HTTPException(
@@ -62,6 +72,8 @@ def get_connector_run(run_id: str):
 def list_connector_events(
     source_id: str | None = None,
     run_id: str | None = None,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.list_events(
         source_id=source_id,
@@ -72,6 +84,8 @@ def list_connector_events(
 @router.get("/price-history/{canonical_product_key}")
 def get_connector_price_history(
     canonical_product_key: str,
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
 ):
     return _service.price_bridge.get_history(
         canonical_product_key

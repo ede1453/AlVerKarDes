@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.internal_service_auth import require_internal_service_key
 from app.domains.connectors.external_connector_bridge import ExternalConnectorBridge
 from app.domains.connectors.external_connector_registry import ExternalConnectorRegistry
 from app.domains.connectors.external_ingestion_service import ExternalConnectorIngestionService
@@ -50,7 +51,13 @@ async def search_external_connectors(query: str, country: str = "DE"):
 
 
 @router.post("/ingest")
-async def ingest_external_connectors(query: str, country: str = "DE", db: AsyncSession = Depends(get_db)):
+async def ingest_external_connectors(
+    query: str,
+    country: str = "DE",
+    db: AsyncSession = Depends(get_db),
+    # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
+    internal_service=Depends(require_internal_service_key),
+):
     return await ExternalConnectorIngestionService(db).search_and_ingest(
         query=query,
         country=country,
