@@ -51,3 +51,11 @@ services:
 volumes:
   aici_postgres_prod_data:
   aici_redis_prod_data:
+
+networks:
+  default:
+    # Explicit, isolated network name -- see docker-compose.yml for why this
+    # matters. Without it, this stack shared a network + DNS alias ("aici-db",
+    # and also "redis") with the dev stack's Postgres/Redis, causing
+    # nondeterministic cross-container DNS resolution.
+    name: alverkardes_prod

@@ -6,11 +6,10 @@ import sys
 import urllib.request
 from pathlib import Path
 
-
 BASE_URL = (
     sys.argv[1].rstrip("/")
     if len(sys.argv) > 1
-    else "http://127.0.0.1:18000"
+    else "http://127.0.0.1:8000"
 )
 
 COMPOSE_FILE = (
@@ -61,6 +60,7 @@ required_files = [
     "scripts/check_openapi_uniqueness.py",
     "scripts/api_contract_schema_guard.py",
     "scripts/check_docker_db_env_consistency.py",
+    "scripts/validate_release_manifest.py",
 ]
 
 missing = [
@@ -90,6 +90,38 @@ for path in ["/health", "/openapi.json"]:
         "passed": passed,
         "status": status,
     }
+
+try:
+    with urllib.request.urlopen(
+        BASE_URL + "/api/v1/connector-operations/readiness",
+        timeout=15,
+    ) as response:
+        readiness_payload = json.loads(response.read().decode("utf-8"))
+        readiness_status = readiness_payload.get("status")
+        readiness_summary = readiness_payload.get("summary", {})
+        readiness_connectors = readiness_payload.get("connectors", [])
+        readiness_passed = (
+            response.status == 200
+            and readiness_status in {"READY", "ACTION_REQUIRED"}
+            and isinstance(readiness_summary.get("connector_count"), int)
+            and isinstance(readiness_connectors, list)
+        )
+except Exception as exc:
+    readiness_status = str(exc)
+    readiness_summary = {}
+    readiness_connectors = []
+    readiness_passed = False
+
+results["checks"]["connector_readiness"] = {
+    "passed": readiness_passed,
+    "status": readiness_status,
+    "summary": readiness_summary,
+    "connector_count": len(readiness_connectors),
+    "note": (
+        "ACTION_REQUIRED can be acceptable during staged production when "
+        "mock/fixture connectors are intentionally enabled."
+    ),
+}
 
 compose_prefix = [
     "docker",
@@ -150,6 +182,10 @@ host_checks = {
     "docker_db_env_consistency": [
         sys.executable,
         "scripts/check_docker_db_env_consistency.py",
+    ],
+    "release_manifest": [
+        sys.executable,
+        "scripts/validate_release_manifest.py",
     ],
 }
 
@@ -243,3 +279,4 @@ print(
 
 if not all_passed:
     raise SystemExit(1)
+

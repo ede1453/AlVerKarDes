@@ -1,9 +1,70 @@
 {
   "version": "v1.0.0",
-  "commit_sha": "ceabb7ad0edff11de5c6b0025f500ec4702a5a09",
-  "source_digest_sha256": "044575a92191aea08fc4d121e757394f84b616dcf6a67b34903cade0b2d61339",
-  "generated_at": "2026-07-13T20:09:22.834439+00:00",
+  "commit_sha": "7bae90a286276f58eb4f15c50f0c9e8407407d63",
+  "source_digest_sha256": "941d8b167b85ba0b9c5552e4f34f71050fbe9255391ab69800c3dfb0677b2537",
+  "generated_at": "2026-07-14T20:53:39.751700+00:00",
   "release_status": "RELEASE_CANDIDATE_APPROVED",
-  "production_port": 18000,
-  "alembic_head": "0014_deal_storage_sqlalchemy"
+  "production_port": 8000,
+  "alembic_head": "0014_deal_storage_sqlalchemy",
+  "connector_readiness": {
+    "status": "ACTION_REQUIRED",
+    "summary": {
+      "connector_count": 5,
+      "operational_ready_count": 4,
+      "production_ready_count": 0,
+      "mock_or_fixture_count": 4,
+      "action_required_count": 4
+    },
+    "connectors": [
+      {
+        "connector_id": "mock_marketplace",
+        "mode": "mock",
+        "operational_ready": true,
+        "production_ready": false,
+        "missing_required_env": []
+      },
+      {
+        "connector_id": "amazon_creators",
+        "mode": "production",
+        "operational_ready": false,
+        "production_ready": false,
+        "missing_required_env": [
+          "AMAZON_CREATORS_CLIENT_ID",
+          "AMAZON_CREATORS_CLIENT_SECRET",
+          "AMAZON_CREATORS_PARTNER_TAG"
+        ]
+      },
+      {
+        "connector_id": "ebay_browse",
+        "mode": "fixture",
+        "operational_ready": true,
+        "production_ready": false,
+        "missing_required_env": [
+          "EBAY_BROWSE_CLIENT_ID",
+          "EBAY_BROWSE_CLIENT_SECRET"
+        ]
+      },
+      {
+        "connector_id": "idealo_partner",
+        "mode": "fixture",
+        "operational_ready": true,
+        "production_ready": false,
+        "missing_required_env": [
+          "IDEALO_PARTNER_ID",
+          "IDEALO_PARTNER_API_KEY"
+        ]
+      },
+      {
+        "connector_id": "affiliate_attribution",
+        "mode": "fixture",
+        "operational_ready": true,
+        "production_ready": false,
+        "missing_required_env": [
+          "AFFILIATE_NETWORK",
+          "AFFILIATE_PUBLISHER_ID",
+          "AFFILIATE_CAMPAIGN_ID"
+        ]
+      }
+    ]
+  }
 }

@@ -19,3 +19,18 @@ services:
 
 volumes:
   aici_pgdata:
+
+networks:
+  default:
+    # Explicit, isolated network name. Without this, Compose derives the
+    # network name from the directory name, which collided with
+    # docker-compose.prod.yml's network (same directory -> same default
+    # project name -> same network) and, worse, both files' postgres
+    # services ended up registering the SAME DNS alias "aici-db"
+    # (this file's container_name, and the prod file's service key) on
+    # that shared network. Docker's embedded DNS then resolved "aici-db"
+    # non-deterministically between the two different Postgres containers
+    # (different passwords), causing intermittent
+    # asyncpg.exceptions.InvalidPasswordError in the prod API container.
+    # See WIKI_ROOT/07-Issues-Risks/Production-Hardening-Bulguları.md (OPS-002).
+    name: alverkardes_dev

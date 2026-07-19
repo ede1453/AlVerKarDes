@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$BaseUrl = "http://127.0.0.1:18000"
+$BaseUrl = "http://127.0.0.1:8000"
 $ComposeFile = ".\deploy\docker\docker-compose.production.yml"
 $EnvFile = ".\.env.production"
 
@@ -26,7 +26,7 @@ if (-not $env:VIRTUAL_ENV) {
 
 Write-Host "Active virtualenv: $env:VIRTUAL_ENV"
 
-Write-Host "1/7 Waiting for production API health..."
+Write-Host "1/8 Waiting for production API health..."
 Invoke-NativeChecked `
     -Step "Production API health check" `
     -Command {
@@ -36,14 +36,14 @@ Invoke-NativeChecked `
             -EnvFile $EnvFile
     }
 
-Write-Host "2/7 Running production smoke tests..."
+Write-Host "2/8 Running production smoke tests..."
 Invoke-NativeChecked `
     -Step "Production smoke test" `
     -Command {
         python .\scripts\production_smoke_test.py $BaseUrl
     }
 
-Write-Host "3/7 Running host test suite and production runtime checks..."
+Write-Host "3/8 Running host test suite and production runtime checks..."
 Invoke-NativeChecked `
     -Step "Final release check" `
     -Command {
@@ -53,14 +53,21 @@ Invoke-NativeChecked `
             $EnvFile
     }
 
-Write-Host "4/7 Generating release manifest..."
+Write-Host "4/8 Generating release manifest..."
 Invoke-NativeChecked `
     -Step "Release manifest generation" `
     -Command {
         python .\scripts\generate_release_manifest.py
     }
 
-Write-Host "5/7 Confirming Alembic head..."
+Write-Host "5/8 Validating release manifest..."
+Invoke-NativeChecked `
+    -Step "Release manifest validation" `
+    -Command {
+        python .\scripts\validate_release_manifest.py
+    }
+
+Write-Host "6/8 Confirming Alembic head..."
 Invoke-NativeChecked `
     -Step "Alembic current" `
     -Command {
@@ -70,7 +77,7 @@ Invoke-NativeChecked `
             run --rm api alembic current
     }
 
-Write-Host "6/7 Displaying production containers..."
+Write-Host "7/8 Displaying production containers..."
 Invoke-NativeChecked `
     -Step "Docker Compose status" `
     -Command {
@@ -80,7 +87,7 @@ Invoke-NativeChecked `
             ps
     }
 
-Write-Host "7/7 Checking generated release reports..."
+Write-Host "8/8 Checking generated release reports..."
 
 $requiredReports = @(
     ".\release\final_release_check.json",
@@ -96,3 +103,4 @@ foreach ($report in $requiredReports) {
 Write-Host ""
 Write-Host "FINAL RESULT: GO"
 Write-Host "AI Consumer Intelligence v1.0.0 is approved as a local production release candidate."
+
