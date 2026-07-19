@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "id": "B0TEST001",
+      "title": "Example Laptop",
+      "brand": "Example",
+      "detailPageUrl": "https://www.amazon.de/dp/B0TEST001?tag=example-21",
+      "imageUrl": "https://images.example.test/laptop.jpg",
+      "offers": [
+        {
+          "amount": 699.99,
+          "currency": "EUR",
+          "availability": "IN_STOCK",
+          "merchant": "Amazon",
+          "condition": "NEW",
+          "isPrime": true,
+          "isAmazonFulfilled": true
+        }
+      ]
+    }
+  ],
+  "nextPageToken": null
+}
