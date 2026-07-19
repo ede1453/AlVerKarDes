@@ -9,6 +9,10 @@ class RateLimitEngine:
         "llm_gateway": RateLimitRule(scope="llm_gateway", limit=60, window_seconds=60),
         "llm_orchestration": RateLimitRule(scope="llm_orchestration", limit=60, window_seconds=60),
         "observability": RateLimitRule(scope="observability", limit=120, window_seconds=60),
+        # CLIENT-002f: password-reset issue -- deliberately strict (industry-
+        # typical throttle for "request a reset email" abuse, both probing
+        # which emails exist and spamming a real user with reset emails).
+        "password_reset": RateLimitRule(scope="password_reset", limit=5, window_seconds=900),
     }
 
     def __init__(

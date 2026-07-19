@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     MAX_REQUEST_BODY_BYTES: int = 2_097_152
     EXPOSE_API_DOCS: bool = True
 
+    # CLIENT-002f: password-reset email links + token lifetime. EMAIL_PROVIDER
+    # only supports "log" for now (real SMTP/third-party provider is a
+    # pending decision, see ADR-013) -- do not add other values here without
+    # that decision first.
+    FRONTEND_ORIGIN: str = "http://localhost:3000"
+    EMAIL_PROVIDER: str = "log"
+    PASSWORD_RESET_TOKEN_MINUTES: int = 30
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

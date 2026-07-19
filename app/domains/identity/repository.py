@@ -22,3 +22,13 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+
+    async def set_password_hash(self, user_id, password_hash: str) -> None:
+        # CLIENT-002f: the write side of complete_password_reset()'s
+        # set_user_password_hash callback.
+        result = await self.db.execute(select(User).where(User.id == user_id, User.deleted_at.is_(None)))
+        user = result.scalar_one_or_none()
+        if user is None:
+            return
+        user.password_hash = password_hash
+        await self.db.commit()
