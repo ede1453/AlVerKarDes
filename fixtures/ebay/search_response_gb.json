@@ -1,0 +1,14 @@
+{
+  "total": 1,
+  "itemSummaries": [
+    {
+      "itemId": "v1|789|0",
+      "title": "Example Laptop UK",
+      "itemWebUrl": "https://www.ebay.co.uk/itm/789",
+      "price": {
+        "value": "629.99",
+        "currency": "GBP"
+      }
+    }
+  ]
+}

@@ -172,6 +172,7 @@ class EbayBrowseConnectorService:
             "effective_price": value + shipping_cost if value is not None else None,
             "condition": raw.get("condition"),
             "seller": (raw.get("seller") or {}).get("username"),
+            "is_real_data": not self.config.fixture_mode,
             "raw": deepcopy(raw),
         }
 
@@ -254,6 +255,7 @@ class EbayBrowseConnectorService:
                 "effective_price": item.get("effective_price"),
                 "currency": item.get("currency"),
                 "observed_at": now_iso(),
+                "is_real_data": not self.config.fixture_mode,
             }
             for item in items
             if item.get("price") is not None
@@ -286,6 +288,7 @@ class EbayBrowseConnectorService:
                 "price": item.get("price"),
                 "currency": item.get("currency"),
                 "collected_at": now_iso(),
+                "is_real_data": not self.config.fixture_mode,
             }
             for item in items
         ]
@@ -321,6 +324,7 @@ class EbayBrowseConnectorService:
             "snapshot_count": snapshots["snapshot_count"],
             "records": records["records"],
             "price_snapshots": snapshots["snapshots"],
+            "is_real_data": not self.config.fixture_mode,
         }
 
     def readiness(self):
@@ -379,6 +383,7 @@ class IdealoPartnerConnectorService:
             "currency": raw.get("currency") or "EUR",
             "availability": raw.get("availability"),
             "observed_at": now_iso(),
+            "is_real_data": not self.config.fixture_mode,
         }
 
     def validate_offer(self, offer):
@@ -432,6 +437,7 @@ class IdealoPartnerConnectorService:
                 "effective_price": offer.get("effective_price"),
                 "currency": offer.get("currency"),
                 "observed_at": offer.get("observed_at") or now_iso(),
+                "is_real_data": not self.config.fixture_mode,
             }
             for offer in offers
             if offer.get("price") is not None
@@ -453,6 +459,7 @@ class IdealoPartnerConnectorService:
             "rejected_count": normalized["rejected_count"],
             "offers": deduplicated["offers"],
             "price_snapshots": snapshots["snapshots"],
+            "is_real_data": not self.config.fixture_mode,
         }
 
     def health_check(self):
@@ -463,6 +470,157 @@ class IdealoPartnerConnectorService:
             "fixture_mode": self.config.fixture_mode,
             "errors": validation["errors"],
             "supported_modes": ["csv", "txt", "xml-adapter", "json", "partner-api"],
+            "checked_at": now_iso(),
+        }
+
+
+@dataclass(frozen=True)
+class BestBuyConfig:
+    api_key: str
+    base_url: str = "https://api.bestbuy.com/v1"
+    maximum_retries: int = 3
+    fixture_mode: bool = False
+
+
+class BestBuyConnectorService:
+    # CONNECT-006 (ADR-008): Best Buy Products API -- basit apiKey
+    # query-param kimlik dogrulamasi kullaniyor (eBay'in OAuth2
+    # client-credentials akisinin aksine, token fetch adimi yok).
+    def __init__(
+        self,
+        config: BestBuyConfig,
+        *,
+        http_transport: Callable[..., dict[str, Any]] | None = None,
+        sleep: Callable[[float], None] = time.sleep,
+    ):
+        self.config = config
+        self.http_transport = http_transport
+        self.sleep = sleep
+        self._metrics = {
+            "request_count": 0,
+            "success_count": 0,
+            "failure_count": 0,
+            "retry_count": 0,
+        }
+
+    def validate_configuration(self):
+        errors = []
+        if not self.config.api_key:
+            errors.append("MISSING_API_KEY")
+        if not self.config.base_url.startswith("https://"):
+            errors.append("BASE_URL_MUST_USE_HTTPS")
+        return {"valid": not errors, "errors": errors}
+
+    def build_search_path(self, keywords: str) -> str:
+        if not keywords.strip():
+            raise ConnectorError("Empty keywords", code="BESTBUY_INVALID_QUERY")
+        from urllib.parse import quote_plus
+
+        return f"/products(search={quote_plus(keywords.strip())})"
+
+    def build_search_params(self, *, page_size: int = 10):
+        return {
+            "format": "json",
+            "apiKey": self.config.api_key,
+            "pageSize": min(max(page_size, 1), 100),
+            "show": "sku,name,salePrice,regularPrice,url,onlineAvailability,image",
+        }
+
+    def normalize_product(self, raw):
+        sku = raw.get("sku")
+        return {
+            "source": "bestbuy",
+            "is_real_data": not self.config.fixture_mode,
+            # Best Buy'in gercek API'si sku'yu integer donuyor
+            # (canli testte bulundu) -- OfferCreate.store_sku str bekliyor.
+            "external_id": str(sku) if sku is not None else None,
+            "title": raw.get("name"),
+            "price": raw.get("salePrice") if raw.get("salePrice") is not None else raw.get("regularPrice"),
+            "regular_price": raw.get("regularPrice"),
+            "currency": "USD",
+            "url": raw.get("url"),
+            "image_url": raw.get("image"),
+            "availability": "IN_STOCK" if raw.get("onlineAvailability") else "OUT_OF_STOCK",
+            "raw": deepcopy(raw),
+        }
+
+    def normalize_search_response(self, response):
+        raw_items = response.get("products", [])
+        items = [self.normalize_product(item) for item in raw_items]
+        return {
+            "items": items,
+            "item_count": len(items),
+            "total": int(response.get("total", len(items))),
+        }
+
+    def classify_error(self, status_code: int):
+        if status_code == 400:
+            return ConnectorError("Malformed request", code="BESTBUY_BAD_REQUEST", status_code=status_code)
+        if status_code == 403:
+            return ConnectorError(
+                "Invalid API key or rate limit exceeded",
+                code="BESTBUY_FORBIDDEN",
+                status_code=status_code,
+            )
+        if status_code == 404:
+            return ConnectorError("Not found", code="BESTBUY_NOT_FOUND", status_code=status_code)
+        if status_code >= 500:
+            return ConnectorError(
+                "Server error",
+                code="BESTBUY_SERVER_ERROR",
+                retryable=True,
+                status_code=status_code,
+            )
+        return ConnectorError("Request failed", code="BESTBUY_REQUEST_FAILED", status_code=status_code)
+
+    def retry_delay(self, attempt_number: int):
+        return float(min(2 ** max(attempt_number - 1, 0), 30))
+
+    def execute_get(self, *, path: str, params: dict[str, Any]):
+        if not self.http_transport:
+            raise ConnectorError("HTTP transport missing", code="BESTBUY_HTTP_TRANSPORT_NOT_CONFIGURED")
+        for attempt in range(1, self.config.maximum_retries + 2):
+            self._metrics["request_count"] += 1
+            response = self.http_transport(
+                method="GET",
+                url=self.config.base_url.rstrip("/") + path + "?" + urlencode(params),
+                headers={"Accept": "application/json"},
+            )
+            status = int(response.get("status_code", 500))
+            if status < 400:
+                self._metrics["success_count"] += 1
+                return {"status_code": status, "data": response.get("json", {}), "attempt_count": attempt}
+            error = self.classify_error(status)
+            self._metrics["failure_count"] += 1
+            if not error.retryable or attempt > self.config.maximum_retries:
+                raise error
+            self._metrics["retry_count"] += 1
+            self.sleep(self.retry_delay(attempt))
+        raise ConnectorError("Retry exhausted", code="BESTBUY_RETRY_EXHAUSTED")
+
+    def search_products(self, *, keywords: str, page_size: int = 10):
+        path = self.build_search_path(keywords)
+        params = self.build_search_params(page_size=page_size)
+        response = self.execute_get(path=path, params=params)
+        return {
+            **self.normalize_search_response(response["data"]),
+            "attempt_count": response["attempt_count"],
+        }
+
+    def metrics(self):
+        request_count = self._metrics["request_count"]
+        return {
+            **self._metrics,
+            "success_rate": round(self._metrics["success_count"] / request_count, 4) if request_count else 0.0,
+        }
+
+    def health_check(self):
+        validation = self.validate_configuration()
+        return {
+            "healthy": validation["valid"],
+            "connector": "bestbuy-products-api",
+            "fixture_mode": self.config.fixture_mode,
+            "errors": validation["errors"],
             "checked_at": now_iso(),
         }
 

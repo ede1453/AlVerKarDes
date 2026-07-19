@@ -70,13 +70,16 @@ async def test_all_three_connectors_write_through_the_same_ingestion_service():
     # all four sources went through the SAME ConnectorIngestionService,
     # no connector-specific write path or filtering branch.
     sources = {item.source for item in result.items}
-    assert sources == {"amazon", "ebay", "idealo", "manual-test"}
+    # CONNECT-006: EbayStoreConnectorAdapter()'in varsayılan source_name'i
+    # artık "ebay" değil "ebay_de" (çok-ülke desteği, marketplace_id
+    # source_name'e yansıyor).
+    assert sources == {"amazon", "ebay_de", "idealo", "manual-test"}
     assert result.ingested_count == 4
 
     is_real_by_source = {item.source: item.is_real_data for item in result.items}
     assert is_real_by_source == {
         "amazon": False,
-        "ebay": False,
+        "ebay_de": False,
         "idealo": False,
         "manual-test": True,
     }

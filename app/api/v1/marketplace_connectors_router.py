@@ -2,16 +2,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from app.domains.marketplace_connectors.factory import (
+    build_bestbuy_connector,
+    build_ebay_connector,
+    build_idealo_connector,
+    idealo_fixture_feed_content,
+)
 from app.domains.marketplace_connectors.service import (
     AffiliateAttributionService,
     AffiliateConfig,
-    EbayBrowseConfig,
-    EbayBrowseConnectorService,
-    IdealoPartnerConfig,
-    IdealoPartnerConnectorService,
+    ConnectorError,
 )
 
 router = APIRouter(prefix="/marketplace-connectors", tags=["marketplace-connectors"])
@@ -88,17 +91,6 @@ def search_marketplace_connector(payload: LegacyMarketplaceSearchRequest) -> dic
         "offers": offers,
     }
 
-def build_ebay_service():
-    return EbayBrowseConnectorService(
-        EbayBrowseConfig(client_id="fixture-client", client_secret="fixture-secret", fixture_mode=True),
-        http_transport=lambda **_: {"status_code": 200, "json": {"itemSummaries": []}},
-    )
-
-def build_idealo_service():
-    return IdealoPartnerConnectorService(
-        IdealoPartnerConfig(partner_id="fixture-partner", api_key="fixture-key", fixture_mode=True)
-    )
-
 def build_affiliate_service():
     return AffiliateAttributionService(
         AffiliateConfig(
@@ -116,9 +108,14 @@ class EbaySearchRequest(BaseModel):
     category_ids: list[str] = Field(default_factory=list)
     filters: list[str] = Field(default_factory=list)
     sort: str | None = None
+    marketplace_id: str | None = None
+
+class BestBuySearchRequest(BaseModel):
+    query: str
+    page_size: int = 10
 
 class IdealoFeedRequest(BaseModel):
-    content: str
+    content: str = ""
     format: str = "csv"
     delimiter: str = ","
 
@@ -127,26 +124,53 @@ class AffiliateClickRequest(BaseModel):
     deal_id: str
     destination_url: str
 
+def _raise_connector_error(error: ConnectorError):
+    raise HTTPException(
+        status_code=error.status_code if error.status_code and error.status_code >= 400 else 502,
+        detail={"code": error.code, "message": str(error), "retryable": error.retryable},
+    ) from error
+
 @router.get("/ebay/health", operation_id="get_ebay_connector_health")
-def ebay_health():
-    return build_ebay_service().health_check()
+def ebay_health(marketplace_id: str | None = None):
+    return build_ebay_connector(marketplace_id=marketplace_id).health_check()
 
 @router.post("/ebay/search", operation_id="search_ebay_browse_items")
 def ebay_search(payload: EbaySearchRequest):
-    return build_ebay_service().search_items(
-        query=payload.query, limit=payload.limit, offset=payload.offset,
-        category_ids=payload.category_ids, filters=payload.filters, sort=payload.sort,
-    )
+    try:
+        return build_ebay_connector(marketplace_id=payload.marketplace_id).search_items(
+            query=payload.query, limit=payload.limit, offset=payload.offset,
+            category_ids=payload.category_ids, filters=payload.filters, sort=payload.sort,
+        )
+    except ConnectorError as error:
+        _raise_connector_error(error)
+
+@router.get("/bestbuy/health", operation_id="get_bestbuy_connector_health")
+def bestbuy_health():
+    return build_bestbuy_connector().health_check()
+
+@router.post("/bestbuy/search", operation_id="search_bestbuy_products")
+def bestbuy_search(payload: BestBuySearchRequest):
+    try:
+        return build_bestbuy_connector().search_products(keywords=payload.query, page_size=payload.page_size)
+    except ConnectorError as error:
+        _raise_connector_error(error)
 
 @router.get("/idealo/health", operation_id="get_idealo_connector_health")
 def idealo_health():
-    return build_idealo_service().health_check()
+    return build_idealo_connector().health_check()
 
 @router.post("/idealo/feed", operation_id="ingest_idealo_partner_feed")
 def idealo_feed(payload: IdealoFeedRequest):
-    return build_idealo_service().run_feed_collection(
-        content=payload.content, format=payload.format, delimiter=payload.delimiter
-    )
+    service = build_idealo_connector()
+    content = payload.content
+    if not content.strip() and service.config.fixture_mode:
+        content = idealo_fixture_feed_content()
+    try:
+        return service.run_feed_collection(
+            content=content, format=payload.format, delimiter=payload.delimiter
+        )
+    except ConnectorError as error:
+        _raise_connector_error(error)
 
 @router.post("/affiliate/click", operation_id="record_marketplace_affiliate_click")
 def affiliate_click(payload: AffiliateClickRequest):
