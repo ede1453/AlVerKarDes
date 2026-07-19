@@ -2,10 +2,12 @@ from app.domains.ai_explanation.explanation_service import AIExplanationService
 from app.domains.deal_detection.deal_detection_service import DealDetectionService
 from app.domains.discount_intelligence.discount_service import DiscountIntelligenceService
 from app.domains.events.event_bus_service import EventBusService
+from app.domains.market.service import MarketService
 from app.domains.marketplace_aggregation.marketplace_service import MarketplaceAggregationService
 from app.domains.notifications.notification_service import NotificationService
 from app.domains.price_prediction.price_prediction_service import PricePredictionService
-from app.domains.product_canonicalization.canonical_service import ProductCanonicalizationService
+from app.domains.products.canonical_service import CanonicalProductService
+from app.domains.products.repository import ProductRepository
 from app.domains.profile_aware_recommendations.profile_aware_service import ProfileAwareRecommendationService
 from app.domains.shopping_pipeline.pipeline_models import ShoppingPipelineResult, create_pipeline_id
 from app.domains.shopping_pipeline.pipeline_serializer import serialize_pipeline_result
@@ -16,7 +18,7 @@ class ShoppingPipelineService:
     def __init__(
         self,
         marketplace_service: MarketplaceAggregationService | None = None,
-        canonicalization_service: ProductCanonicalizationService | None = None,
+        canonicalization_service: CanonicalProductService | None = None,
         recommendation_service: ProfileAwareRecommendationService | None = None,
         deal_service: DealDetectionService | None = None,
         prediction_service: PricePredictionService | None = None,
@@ -27,7 +29,7 @@ class ShoppingPipelineService:
         event_bus_service: EventBusService | None = None,
     ):
         self.marketplace_service = marketplace_service or MarketplaceAggregationService()
-        self.canonicalization_service = canonicalization_service or ProductCanonicalizationService()
+        self.canonicalization_service = canonicalization_service or CanonicalProductService()
         self.recommendation_service = recommendation_service or ProfileAwareRecommendationService()
         self.deal_service = deal_service or DealDetectionService()
         self.prediction_service = prediction_service or PricePredictionService()
@@ -37,7 +39,7 @@ class ShoppingPipelineService:
         self.notification_service = notification_service or NotificationService()
         self.event_bus_service = event_bus_service or EventBusService()
 
-    def run(self, payload: dict):
+    async def run(self, payload: dict, db):
         user_id = payload["user_id"]
         query = payload["query"]
         offers = payload.get("offers") or self._default_offers(query)
@@ -76,7 +78,7 @@ class ShoppingPipelineService:
 
         top = recommendation.get("items", [None])[0] if recommendation.get("items") else None
 
-        price_history = payload.get("price_history") or self._price_history_from_search(search)
+        price_history = None
         deal_detection = None
         price_prediction = None
         discount_intelligence = None
@@ -85,6 +87,26 @@ class ShoppingPipelineService:
         notification = None
 
         if top:
+            # CONNECT-001: price_history used to be fabricated from the
+            # current search's offers (min/max/avg of *today's* prices, with
+            # a hardcoded 949.00 fallback when even that was empty) -- never
+            # a real historical read, so deal_detection/price_prediction/
+            # discount_intelligence for this pipeline's primary user-facing
+            # flow never reflected actual history. Explicit caller-supplied
+            # price_history (e.g. tests) is still honored as-is; otherwise
+            # this reads the real market.Price table via the product's
+            # canonical_key, and returns an explicit INSUFFICIENT_DATA
+            # status (not fabricated numbers) when no real history exists.
+            # CONNECT-003: top["product_key"] now comes from
+            # CanonicalProductService (the real ingestion-path normalizer),
+            # so it can be trusted directly -- no need to re-derive it from
+            # product_name via a second normalization pass as CONNECT-001
+            # had to (that was a workaround for canonicalization's old
+            # mismatch with the real engine, now fixed at the source).
+            price_history = payload.get("price_history")
+            if price_history is None:
+                price_history = await self._real_price_history(db, top.get("product_key"))
+
             top_price = self._extract_price(top)
             top_marketplace = self._extract_marketplace(top)
 
@@ -168,6 +190,7 @@ class ShoppingPipelineService:
             search=search,
             canonicalization=canonicalization,
             recommendation=recommendation,
+            price_history=price_history,
             deal_detection=deal_detection,
             price_prediction=price_prediction,
             discount_intelligence=discount_intelligence,
@@ -237,18 +260,50 @@ class ShoppingPipelineService:
 
         return candidates
 
-    def _price_history_from_search(self, search: dict):
-        prices = [float(offer["price"]) for offer in search.get("offers", []) if offer.get("price") is not None]
-        if not prices:
-            prices = [949.00]
-        latest = min(prices)
+    async def _real_price_history(self, db, canonical_key: str | None) -> dict:
+        """CONNECT-001: reads real price history from market.Price (the
+        canonical store, see ADR-007 Karar 3) via the product's
+        canonical_key. Returns an explicit INSUFFICIENT_DATA status instead
+        of fabricating numbers when no real data exists -- consistent with
+        this project's "don't let missing/unreliable data produce a
+        definitive decision" discipline (already applied elsewhere, e.g.
+        AUTH-003 Part 2's refusal to invent ownership data).
+
+        CONNECT-003: canonical_key is now trusted directly from this
+        pipeline's own canonicalization step (CanonicalProductService, the
+        real ingestion-path engine) rather than re-derived from product_name
+        here -- CONNECT-001 had to re-derive it because canonicalization
+        still used the standalone product_canonicalization domain, which
+        produced a DIFFERENT canonical_key format than the real ingestion
+        path. That mismatch is fixed at the source now (ADR-007 Karar 2)."""
+        if not canonical_key:
+            return {"status": "INSUFFICIENT_DATA", "reason": "NO_CANONICAL_KEY"}
+
+        product = await ProductRepository(db).get_by_canonical_key(canonical_key)
+        if product is None:
+            return {"status": "INSUFFICIENT_DATA", "reason": "PRODUCT_NOT_FOUND"}
+
+        price_points = await MarketService(db).get_price_history_for_product(product.id)
+        if not price_points:
+            return {"status": "INSUFFICIENT_DATA", "reason": "NO_PRICE_HISTORY"}
+
+        amounts = [float(point.amount) for point in price_points]
+        latest = amounts[-1]
+        if len(amounts) > 1 and amounts[-1] < amounts[0]:
+            trend = "DOWN"
+        elif len(amounts) > 1 and amounts[-1] > amounts[0]:
+            trend = "UP"
+        else:
+            trend = "FLAT"
+
         return {
+            "status": "OK",
             "latest_price": f"{latest:.2f}",
-            "min_price": f"{min(prices):.2f}",
-            "average_price": f"{(sum(prices) / len(prices)):.2f}",
-            "max_price": f"{max(prices):.2f}",
-            "trend": "DOWN" if len(prices) > 1 and min(prices) < max(prices) else "FLAT",
-            "points": [{"price": f"{price:.2f}"} for price in prices],
+            "min_price": f"{min(amounts):.2f}",
+            "average_price": f"{(sum(amounts) / len(amounts)):.2f}",
+            "max_price": f"{max(amounts):.2f}",
+            "trend": trend,
+            "points": [{"price": f"{amount:.2f}"} for amount in amounts],
         }
 
     def _extract_price(self, top: dict):

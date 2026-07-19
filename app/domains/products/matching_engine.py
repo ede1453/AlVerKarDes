@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
+from uuid import uuid4
 
 from app.domains.products.normalization.rules import normalize_text
 from app.domains.products.normalization.schemas import ProductIdentity, ProductNormalizationInput
@@ -67,6 +69,70 @@ class ProductMatchEngine:
             same_product=same_product,
             reasons=reasons,
         )
+
+    def match(self, payload: dict, country: str = "DE") -> dict:
+        """CONNECT-003 (ADR-007 Karar 2): batch offer-grouping API, added so
+        callers that previously used the standalone product_matching domain
+        (now archived to _arsiv/ -- ai_shopping_agent) can group offers using
+        the SAME real identity engine (ProductNormalizationService) that the
+        actual ingestion path uses, instead of a separate first-4-token
+        heuristic that could silently disagree with it (see ADR-007 Karar 2/3
+        and the CONNECT-001 incident this pattern caused for price_history).
+        Groups offers by their real canonical_key -- two offers land in the
+        same group iff the real engine would treat them as the same product."""
+        query = payload["query"]
+        offers = payload.get("offers", [])
+
+        groups_by_key: dict[str, list[dict]] = {}
+        confidences_by_key: dict[str, list[float]] = {}
+
+        for offer in offers:
+            product_name = offer["product_name"]
+            normalized_name = normalize_text(product_name)
+            identity = self.normalizer.normalize(
+                ProductNormalizationInput(product_name=product_name, country=country)
+            )
+            key = identity.canonical_key or normalized_name
+
+            candidate = {
+                "offer_id": offer.get("id") or offer.get("offer_id") or str(uuid4()),
+                "marketplace": offer.get("marketplace", ""),
+                "product_name": product_name,
+                "normalized_product_name": normalized_name,
+                "price": str(offer["price"]),
+                "currency": offer.get("currency", "EUR"),
+                "metadata": offer.get("metadata", {}),
+            }
+
+            groups_by_key.setdefault(key, []).append(candidate)
+            confidences_by_key.setdefault(key, []).append(identity.confidence)
+
+        groups = []
+        for key, candidates in groups_by_key.items():
+            canonical_name = sorted(candidates, key=lambda item: (len(item["product_name"]), item["product_name"]))[0][
+                "product_name"
+            ]
+            confidences = confidences_by_key[key]
+            groups.append(
+                {
+                    "group_id": str(uuid4()),
+                    "canonical_name": canonical_name,
+                    "normalized_canonical_name": key,
+                    "match_confidence": round(sum(confidences) / len(confidences)),
+                    "candidates": sorted(candidates, key=lambda item: (item["price"], item["marketplace"])),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+
+        groups = sorted(groups, key=lambda group: (-len(group["candidates"]), group["canonical_name"]))
+
+        return {
+            "query": query,
+            "group_count": len(groups),
+            "matched_offer_count": sum(len(group["candidates"]) for group in groups),
+            "groups": groups,
+            "metadata": {"matching_version": "products_matching_real_v1"},
+        }
 
     def _token_score(self, left: str, right: str) -> float:
         left_norm = normalize_text(self._expand_aliases(left))

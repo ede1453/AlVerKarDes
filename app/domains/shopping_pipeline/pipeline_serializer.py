@@ -8,6 +8,7 @@ def serialize_pipeline_result(result):
         "search": result.search,
         "canonicalization": result.canonicalization,
         "recommendation": result.recommendation,
+        "price_history": result.price_history,
         "deal_detection": result.deal_detection,
         "price_prediction": result.price_prediction,
         "discount_intelligence": result.discount_intelligence,

@@ -6,7 +6,7 @@ from app.domains.cache.cache_service import CacheService
 from app.domains.events.event_bus_service import EventBusService
 from app.domains.personalization.personalization_service import PersonalizationService
 from app.domains.price_history.price_history_service import PriceHistoryService
-from app.domains.product_matching.product_matching_service import ProductMatchingService
+from app.domains.products.matching_engine import ProductMatchEngine
 from app.domains.unified_search.unified_search_service import UnifiedSearchService
 
 
@@ -15,7 +15,7 @@ class AIShoppingAgentService:
         self,
         engine: AIShoppingAgentEngine | None = None,
         search_service: UnifiedSearchService | None = None,
-        matching_service: ProductMatchingService | None = None,
+        matching_service: ProductMatchEngine | None = None,
         price_history_service: PriceHistoryService | None = None,
         personalization_service: PersonalizationService | None = None,
         cache_service: CacheService | None = None,
@@ -23,7 +23,11 @@ class AIShoppingAgentService:
     ):
         self.engine = engine or AIShoppingAgentEngine()
         self.search_service = search_service or UnifiedSearchService()
-        self.matching_service = matching_service or ProductMatchingService()
+        # CONNECT-003 (ADR-007 Karar 2): uses the real products/matching_engine
+        # (same identity engine as the real ingestion path), not the archived
+        # standalone product_matching domain, which used a different, cruder
+        # first-4-token heuristic disconnected from real product identity.
+        self.matching_service = matching_service or ProductMatchEngine()
         self.price_history_service = price_history_service or PriceHistoryService()
         self.personalization_service = personalization_service or PersonalizationService()
         self.cache_service = cache_service or CacheService()

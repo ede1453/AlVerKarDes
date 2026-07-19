@@ -13,6 +13,7 @@ class ShoppingPipelineResult:
     search: dict
     canonicalization: dict
     recommendation: dict
+    price_history: dict | None
     deal_detection: dict | None
     price_prediction: dict | None
     discount_intelligence: dict | None
