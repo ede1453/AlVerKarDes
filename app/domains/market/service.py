@@ -69,6 +69,39 @@ class MarketService:
     async def get_price_history_for_product(self, product_id, limit: int | None = None, only_real: bool = True):
         return await self.price_repo.list_for_product(product_id, limit=limit, only_real=only_real)
 
+    async def get_price_history_summary_for_product(self, product_id) -> dict:
+        # CLIENT-002b: shopping_pipeline_service._real_price_history()'nin
+        # ozet-hesaplama mantigi buraya tasindi (paylasilan tek kaynak) --
+        # CLIENT-002b'nin GET /products/{id}/detail'i de ayni gercek
+        # market.Price verisinden ayni sekilde ozet uretsin diye, ikinci bir
+        # paralel implementasyon (bu projenin tekrar tekrar bulup duzelttigi
+        # bir hata sinifi -- bkz. Marketplace-Product-Paralel-Implementasyon)
+        # yaratmadan. Davranis birebir korundu (CONNECT-001'in canli
+        # dogrulanmis mantigi), sadece canonical_key -> product lookup'i
+        # cagiran tarafta (pipeline_service) kaldi.
+        price_points = await self.get_price_history_for_product(product_id)
+        if not price_points:
+            return {"status": "INSUFFICIENT_DATA", "reason": "NO_PRICE_HISTORY"}
+
+        amounts = [float(point.amount) for point in price_points]
+        latest = amounts[-1]
+        if len(amounts) > 1 and amounts[-1] < amounts[0]:
+            trend = "DOWN"
+        elif len(amounts) > 1 and amounts[-1] > amounts[0]:
+            trend = "UP"
+        else:
+            trend = "FLAT"
+
+        return {
+            "status": "OK",
+            "latest_price": f"{latest:.2f}",
+            "min_price": f"{min(amounts):.2f}",
+            "average_price": f"{(sum(amounts) / len(amounts)):.2f}",
+            "max_price": f"{max(amounts):.2f}",
+            "trend": trend,
+            "points": [{"price": f"{amount:.2f}"} for amount in amounts],
+        }
+
     async def get_offers_with_latest_price_for_product(self, product_id, limit: int | None = None):
         # CLIENT-000b: shopping_pipeline'in arama adiminin (ve
         # GET /market/products/{id}/offers'in) tek gercek veri kaynagi --

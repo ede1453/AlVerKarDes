@@ -25,6 +25,9 @@ class ProductService:
     async def search_products(self, query: str, limit: int = 20):
         return await self.product_repo.search(query, limit)
 
+    async def get_by_id(self, product_id):
+        return await self.product_repo.get_by_id(product_id)
+
     async def create_from_name(self, product_name: str, country: str = "DE"):
         return await self.get_or_create_product(product_name=product_name, country=country)
 

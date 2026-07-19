@@ -306,28 +306,11 @@ class ShoppingPipelineService:
         if product is None:
             return {"status": "INSUFFICIENT_DATA", "reason": "PRODUCT_NOT_FOUND"}
 
-        price_points = await MarketService(db).get_price_history_for_product(product.id)
-        if not price_points:
-            return {"status": "INSUFFICIENT_DATA", "reason": "NO_PRICE_HISTORY"}
-
-        amounts = [float(point.amount) for point in price_points]
-        latest = amounts[-1]
-        if len(amounts) > 1 and amounts[-1] < amounts[0]:
-            trend = "DOWN"
-        elif len(amounts) > 1 and amounts[-1] > amounts[0]:
-            trend = "UP"
-        else:
-            trend = "FLAT"
-
-        return {
-            "status": "OK",
-            "latest_price": f"{latest:.2f}",
-            "min_price": f"{min(amounts):.2f}",
-            "average_price": f"{(sum(amounts) / len(amounts)):.2f}",
-            "max_price": f"{max(amounts):.2f}",
-            "trend": trend,
-            "points": [{"price": f"{amount:.2f}"} for amount in amounts],
-        }
+        # CLIENT-002b: ozet-hesaplama mantigi MarketService'e tasindi --
+        # GET /products/{id}/detail de ayni gercek market.Price verisinden
+        # ayni sekilde ozet uretiyor, ikinci bir paralel implementasyon
+        # yaratilmadi. Davranis birebir korunuyor (CONNECT-001).
+        return await MarketService(db).get_price_history_summary_for_product(product.id)
 
     def _extract_price(self, top: dict):
         return str(top.get("source", {}).get("price") or top.get("price") or "949.00")

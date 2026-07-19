@@ -58,6 +58,15 @@ class ProductRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_id(self, product_id):
+        result = await self.db.execute(
+            select(Product).where(
+                Product.id == product_id,
+                Product.deleted_at.is_(None),
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def create(self, payload: ProductCreate):
         if payload.canonical_key:
             existing = await self.get_by_canonical_key(payload.canonical_key)
