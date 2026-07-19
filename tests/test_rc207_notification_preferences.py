@@ -1,9 +1,12 @@
+import pytest
+
 from app.domains.deal_notifications.service import NotificationPreferenceService
 
 
-def test_rc207_store_preferences():
+@pytest.mark.asyncio
+async def test_rc207_store_preferences():
     service = NotificationPreferenceService()
-    result = service.set_preferences(
+    result = await service.set_preferences(
         user_id="user-1",
         enabled_channels=["push","email","push"],
         minimum_confidence=80,
@@ -12,6 +15,5 @@ def test_rc207_store_preferences():
     )
     assert result["updated"] is True
     assert result["preferences"]["enabled_channels"] == ["email","push"]
-    assert service.get_preferences(
-        "user-1"
-    )["minimum_confidence"] == 80
+    fetched = await service.get_preferences("user-1")
+    assert fetched["minimum_confidence"] == 80

@@ -2,9 +2,13 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
+from app.domains.deal_notifications.repository import NotificationPreferenceDBRepository
 from app.domains.deal_notifications.service import (
     DealNotificationService,
+    NotificationPreferenceService,
 )
 from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
 from app.domains.identity.models import UserRole
@@ -14,7 +18,17 @@ router = APIRouter(
     tags=["deal-notifications"],
 )
 
+# CLIENT-002g: this singleton keeps _notifications (in-memory notification
+# history/delivery-tracking, unchanged, out of this round's scope) alive
+# across requests. Its own .preferences attribute (in-memory default) is
+# NOT used for real preference reads anymore -- see _preferences_service()
+# below, constructed fresh per request with a real DB session, same
+# decision_memory_router.py/watchlist_router.py pattern (CLIENT-002e).
 _service = DealNotificationService()
+
+
+def _preferences_service(db: AsyncSession) -> NotificationPreferenceService:
+    return NotificationPreferenceService(repository=NotificationPreferenceDBRepository(db))
 
 
 class PreferenceRequest(BaseModel):
@@ -50,34 +64,39 @@ def clear_deal_notifications(
 
 
 @router.post("/preferences")
-def set_preferences(
+async def set_preferences(
     payload: PreferenceRequest,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
-    return _service.preferences.set_preferences(
+    return await _preferences_service(db).set_preferences(
         **payload.model_dump()
     )
 
 
 @router.get("/preferences/{user_id}")
-def get_preferences(
+async def get_preferences(
     user_id: str,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, user_id)
-    return _service.preferences.get_preferences(
+    return await _preferences_service(db).get_preferences(
         user_id
     )
 
 
 @router.post("/build")
-def build_notification(
+async def build_notification(
     payload: NotificationRequest,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
-    return _service.build_notification(
+    preferences = await _preferences_service(db).get_preferences(payload.user_id)
+    return await _service.build_notification(
+        preferences=preferences,
         **payload.model_dump()
     )
 

@@ -5,6 +5,8 @@ from datetime import datetime, time, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.domains.deal_notifications.repository import InMemoryNotificationPreferenceRepository
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -70,10 +72,15 @@ class DealAlertEligibilityEngine:
 
 
 class NotificationPreferenceService:
-    def __init__(self) -> None:
-        self._preferences: dict[str, dict[str, Any]] = {}
+    # CLIENT-002g: storage delegated to an injected repository (async) --
+    # same pattern as WatchlistService (CLIENT-002e). Default stays the
+    # in-memory repository so NotificationPreferenceService() with no args
+    # still works standalone for unit tests
+    # (tests/test_rc207_notification_preferences.py).
+    def __init__(self, repository: InMemoryNotificationPreferenceRepository | None = None) -> None:
+        self.repository = repository or InMemoryNotificationPreferenceRepository()
 
-    def set_preferences(
+    async def set_preferences(
         self,
         *,
         user_id: str,
@@ -103,18 +110,18 @@ class NotificationPreferenceService:
             "quiet_hours_end": quiet_hours_end,
             "updated_at": now_iso(),
         }
-        self._preferences[user_id] = preferences
+        saved = await self.repository.upsert(preferences)
 
         return {
             "updated": True,
-            "preferences": deepcopy(preferences),
+            "preferences": deepcopy(saved),
         }
 
-    def get_preferences(
+    async def get_preferences(
         self,
         user_id: str,
     ) -> dict[str, Any]:
-        existing = self._preferences.get(user_id)
+        existing = await self.repository.get(user_id)
 
         if existing:
             return deepcopy(existing)
@@ -219,16 +226,26 @@ class DealNotificationService:
         self.channel_router = NotificationChannelRouter()
         self._notifications: dict[str, dict[str, Any]] = {}
 
-    def build_notification(
+    async def build_notification(
         self,
         *,
         user_id: str,
         deal: dict[str, Any],
         at_time: str,
+        preferences: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        preferences = self.preferences.get_preferences(
-            user_id
-        )
+        # CLIENT-002g: preferences can be passed in explicitly (the router
+        # does this, fetching from the real Postgres-backed repository) --
+        # falls back to self.preferences (in-memory default) only when the
+        # caller doesn't supply one, e.g. tests/test_rc210_*.py. Passing it
+        # explicitly avoids ever mutating this service's shared
+        # self.preferences per-request (would be a real race condition
+        # under concurrent requests since this service instance is a
+        # module-level singleton in the router).
+        if preferences is None:
+            preferences = await self.preferences.get_preferences(
+                user_id
+            )
 
         eligibility = self.eligibility.evaluate(
             deal=deal,

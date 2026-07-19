@@ -1,9 +1,12 @@
+import pytest
+
 from app.domains.deal_notifications.service import DealNotificationService
 
 
-def test_rc210_build_and_deliver_notification():
+@pytest.mark.asyncio
+async def test_rc210_build_and_deliver_notification():
     service = DealNotificationService()
-    service.preferences.set_preferences(
+    await service.preferences.set_preferences(
         user_id="user-1",
         enabled_channels=["push","in_app"],
         minimum_confidence=70,
@@ -11,7 +14,7 @@ def test_rc210_build_and_deliver_notification():
         quiet_hours_enabled=False,
     )
 
-    created = service.build_notification(
+    created = await service.build_notification(
         user_id="user-1",
         at_time="2026-07-12T12:00:00+03:00",
         deal={
