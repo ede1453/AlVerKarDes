@@ -36,7 +36,10 @@ class Product(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     model_number: Mapped[str | None] = mapped_column(String(200))
     gtin: Mapped[str | None] = mapped_column(String(32))
     manufacturer_sku: Mapped[str | None] = mapped_column(String(200))
-    canonical_key: Mapped[str | None] = mapped_column(String(300), index=True)
+    # NOT NULL (migration 0021) -- every product must be born with a real
+    # canonical_key, guaranteed at the API boundary by ProductCreate's
+    # required field (see schemas.py).
+    canonical_key: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text)
     metadata_json: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 

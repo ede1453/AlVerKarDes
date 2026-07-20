@@ -68,10 +68,11 @@ class ProductRepository:
         return result.scalar_one_or_none()
 
     async def create(self, payload: ProductCreate):
-        if payload.canonical_key:
-            existing = await self.get_by_canonical_key(payload.canonical_key)
-            if existing:
-                return existing
+        # canonical_key is required on ProductCreate now (see schemas.py) --
+        # always dedup-checked, no longer conditional on it being present.
+        existing = await self.get_by_canonical_key(payload.canonical_key)
+        if existing:
+            return existing
 
         data = payload.model_dump()
         data["metadata_json"] = data.pop("metadata", {})
