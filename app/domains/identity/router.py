@@ -6,9 +6,15 @@ from app.domains.auth_core.dependencies import build_auth_service
 from app.domains.auth_core.login_flow import authenticate_and_issue_tokens
 from app.domains.auth_core.service import AuthenticationCoreError
 from app.domains.auth_core.types import AuthContext
-from app.domains.identity.dependencies import get_current_user
+from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.identity.repository import UserRepository
-from app.domains.identity.schemas import TokenResponse, UserLoginRequest, UserRead, UserRegisterRequest
+from app.domains.identity.schemas import (
+    TokenResponse,
+    UserLoginRequest,
+    UserProfileUpdateRequest,
+    UserRead,
+    UserRegisterRequest,
+)
 from app.domains.identity.service import AuthService
 
 router = APIRouter()
@@ -47,3 +53,27 @@ async def login(payload: UserLoginRequest, request: Request, db: AsyncSession = 
 @router.get("/me", response_model=UserRead)
 async def me(current_user=Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/me", response_model=UserRead)
+async def update_profile(
+    payload: UserProfileUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    # CLIENT-002h: user_id in the body + ensure_owner(), same OWNER_ONLY
+    # shape as every other CLIENT-002 settings endpoint (watchlist,
+    # deal-notifications preferences) -- redundant with "always operates
+    # on the token holder" in principle, but consistent with this
+    # codebase's established convention and gives a real cross-user
+    # attack vector to test (impersonation via a mismatched user_id).
+    ensure_owner(current_user, str(payload.user_id))
+    updated = await UserRepository(db).update_profile(
+        user_id=payload.user_id,
+        display_name=payload.display_name,
+        preferred_language=payload.preferred_language,
+        preferred_country=payload.preferred_country,
+    )
+    if updated is None:
+        raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
+    return updated

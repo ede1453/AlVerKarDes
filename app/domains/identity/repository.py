@@ -23,6 +23,29 @@ class UserRepository:
         await self.db.refresh(user)
         return user
 
+    async def update_profile(
+        self,
+        *,
+        user_id,
+        display_name: str | None,
+        preferred_language: str,
+        preferred_country: str,
+    ) -> User | None:
+        # CLIENT-002h: display_name/preferred_language/preferred_country
+        # already existed as real columns (used since registration/
+        # UserRead) -- this is the first write path for them beyond
+        # registration-time defaults, no migration needed.
+        result = await self.db.execute(select(User).where(User.id == user_id, User.deleted_at.is_(None)))
+        user = result.scalar_one_or_none()
+        if user is None:
+            return None
+        user.display_name = display_name
+        user.preferred_language = preferred_language
+        user.preferred_country = preferred_country
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
     async def set_password_hash(self, user_id, password_hash: str) -> None:
         # CLIENT-002f: the write side of complete_password_reset()'s
         # set_user_password_hash callback.
