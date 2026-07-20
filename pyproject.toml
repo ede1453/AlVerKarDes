@@ -14,3 +14,6 @@ python_files = ["test_*.py"]
 asyncio_default_fixture_loop_scope = "function"
 addopts = ["-p", "no:cacheprovider"]
 norecursedirs = [".pytest_cache", ".pytest_tmp", "pytest_tmp", "tests/.pytest_tmp", "tests/pytest_tmp", "tests/runtime_tmp"]
+markers = [
+    "slow: disproportionately expensive real-I/O test (e.g. real zip/filesystem work) -- included by default (plain `pytest`/commit-point runs are never filtered), opt OUT with `-m \"not slow\"` for fast local iteration. Never opt out at a phase-closure/commit-point run.",
+]

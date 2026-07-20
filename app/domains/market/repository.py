@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.market.models import Offer, Price, Store
@@ -72,16 +72,31 @@ class OfferRepository:
         # bkz. PriceRepository.list_for_product) -- cagiran taraf
         # (RealDealFeedSourceService) her urun icin gercek teklifleri ayrica
         # filtreliyor.
+        #
+        # TEST-001 (2026-07-20): eskiden `.distinct().order_by(Offer.product_id)`
+        # idi -- product_id rastgele bir UUID oldugu icin bu, "en kucuk N UUID"
+        # gibi tamamen recency'den bagimsiz bir siralamaydi. Paylasilan dev
+        # DB'de limit'i asan sayida urun birikince (bu turda dogrulandi: 184
+        # urun, limit=100), YENI eklenen bir urunun bu keyfi kesitin icine
+        # dusme sansi ~limit/toplam idi -- test_client_002d_real_deal_feed.py
+        # ::test_real_ingested_product_appears_in_deal_feed'in "flaky" olarak
+        # 2 kez yanlis tanilanmasinin gercek kok nedeni buydu (bkz. WIKI_ROOT
+        # Windows-Asyncpg-Xdist-Flaky-Test-Izleme.md). Simdi urun basina en
+        # son offer olusturma zamanina gore siralaniyor -- hem gercek urun
+        # semantigi olarak dogru (bir "deal feed" en yeni tekliflere oncelik
+        # vermeli), hem de yeni eklenen bir urunun sonuc kumesinden rastgele
+        # dislanmasini imkansiz kiliyor.
+        latest_offer_at = func.max(Offer.created_at).label("latest_offer_at")
         stmt = (
-            select(Offer.product_id)
+            select(Offer.product_id, latest_offer_at)
             .join(Price, Price.offer_id == Offer.id)
             .where(
                 Offer.deleted_at.is_(None),
                 Offer.is_active.is_(True),
                 Price.deleted_at.is_(None),
             )
-            .distinct()
-            .order_by(Offer.product_id)
+            .group_by(Offer.product_id)
+            .order_by(latest_offer_at.desc())
         )
 
         if limit:

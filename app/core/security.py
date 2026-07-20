@@ -5,7 +5,16 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# TEST-002 (2026-07-20): bcrypt's cost factor is a real production security
+# control (default 12, ~250ms/hash -- deliberately expensive against
+# offline cracking) but pure CPU waste in the test suite, where there is no
+# real threat model for test-user passwords. settings.BCRYPT_ROUNDS
+# defaults to 12 (production-safe, unchanged from before) -- only
+# tests/conftest.py overrides it (via the BCRYPT_ROUNDS env var, set before
+# any app import) to bcrypt's own minimum of 4 (~5ms/hash). Nothing about
+# this touches DATABASE_URL/real-Postgres discipline; it only makes a
+# CPU-bound hashing primitive cheaper for non-production use.
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=settings.BCRYPT_ROUNDS)
 
 
 def hash_password(password: str) -> str:

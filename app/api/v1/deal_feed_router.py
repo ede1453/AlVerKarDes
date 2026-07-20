@@ -63,7 +63,12 @@ async def query_deal_feed(
     # /deal-feed/ingest ve /deal-feed/deals/{deal_id} bu turda dokunulmadi,
     # hala eski in-memory _service uzerinden calisiyor (bilinen, kayitli bir
     # tutarsizlik -- bkz. WIKI_ROOT).
-    real_deals = await RealDealFeedSourceService(db).list_real_deals()
+    # TEST-001 (2026-07-20): the candidate scan was capped at
+    # list_real_deals()'s hardcoded default (100) regardless of what limit
+    # the caller actually requested, silently truncating below the
+    # requested page size once real ingestion volume exceeds 100 products.
+    # Scan at least as many candidates as the caller's requested feed size.
+    real_deals = await RealDealFeedSourceService(db).list_real_deals(limit=max(payload.limit, 100))
     return DealFeedBuilder().build(
         deals=real_deals,
         preferences=payload.preferences,

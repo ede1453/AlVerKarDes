@@ -12,6 +12,11 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
+    # TEST-002: production-safe default (bcrypt's own recommended cost
+    # factor). Only tests/conftest.py overrides this, to a much cheaper
+    # value, via the BCRYPT_ROUNDS env var set before any app import --
+    # see app/core/security.py for the full rationale.
+    BCRYPT_ROUNDS: int = 12
     INTERNAL_SERVICE_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     AUTH_LOCKOUT_MINUTES: int = 15

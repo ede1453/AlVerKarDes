@@ -2,6 +2,8 @@ import shutil
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from scripts.build_release_zip import build_release_zip
 from scripts.check_release_hygiene import scan_zip
 
@@ -16,6 +18,7 @@ def _runtime_dir(name: str) -> Path:
     return path
 
 
+@pytest.mark.slow
 def test_rc58_release_hygiene_detects_forbidden_zip_entries():
     workdir = _runtime_dir("rc58_bad_zip")
     bad_zip = workdir / "bad.zip"

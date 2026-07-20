@@ -1,3 +1,16 @@
+import os
+
+# TEST-002 (2026-07-20): must be set before ANY `app.*` import below (or in
+# any test module) -- app.core.config.settings is a module-level singleton
+# instantiated at first import, and pydantic-settings reads real env vars
+# ahead of .env file values. This makes bcrypt (used by every
+# register/login in the test suite, ~250ms/call in production-safe mode)
+# use its cheapest cost factor for tests only -- app/core/security.py holds
+# the production-safe default (12), completely unaffected outside pytest.
+# Does not touch DATABASE_URL or any other setting: real Postgres is still
+# used for every test, this only makes a CPU-bound hashing primitive cheaper.
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
 import asyncio
 
 import pytest
