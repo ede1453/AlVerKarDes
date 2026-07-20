@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     EMAIL_PROVIDER: str = "log"
     PASSWORD_RESET_TOKEN_MINUTES: int = 30
 
+    # BILL-001: payment provider abstraction, same env-driven-factory
+    # pattern as EMAIL_PROVIDER above -- defaults to a mock provider that
+    # never touches real money; switching to "stripe" requires
+    # STRIPE_SECRET_KEY to be set (see ADR-016, app/domains/billing/factory.py).
+    PAYMENT_PROVIDER: str = "mock"
+    STRIPE_SECRET_KEY: str | None = None
+    # FREE tier watchlist item cap -- single source of truth, referenced
+    # from watchlist_router.py's quota check instead of a magic number.
+    FREE_TIER_WATCHLIST_LIMIT: int = 10
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -5,6 +5,7 @@ from app.api.v1.ai_explanation_router import router as ai_explanation_router
 from app.api.v1.ai_shopping_agent_router import router as ai_shopping_agent_router
 from app.api.v1.ai_shopping_assistant_router import router as ai_shopping_assistant_router
 from app.api.v1.amazon_connector_router import router as amazon_connector_router
+from app.api.v1.billing_router import router as billing_router
 from app.api.v1.cache_router import router as cache_router
 from app.api.v1.commerce_ingestion_execution_router import router as commerce_ingestion_execution_router
 from app.api.v1.commerce_ingestion_router import router as commerce_ingestion_router
@@ -151,6 +152,7 @@ api_router.include_router(deal_detection_router)
 api_router.include_router(price_prediction_router)
 api_router.include_router(smart_alerts_router)
 api_router.include_router(watchlist_router)
+api_router.include_router(billing_router)
 api_router.include_router(discount_intelligence_router)
 api_router.include_router(ai_explanation_router)
 api_router.include_router(crawler_router)

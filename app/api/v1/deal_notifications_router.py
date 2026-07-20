@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.domains.billing.db_models import SubscriptionTier
+from app.domains.billing.repository import SubscriptionDBRepository
+from app.domains.billing.service import SubscriptionService
 from app.domains.deal_notifications.repository import NotificationPreferenceDBRepository
 from app.domains.deal_notifications.service import (
     DealNotificationService,
@@ -70,6 +73,30 @@ async def set_preferences(
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
+
+    # BILL-001: threshold customization (minimum_confidence/minimum_discount_pct)
+    # is PREMIUM-only. CLIENT-002g built this as a full-replace endpoint
+    # (the whole preference set is sent every time, not a partial patch) --
+    # so a FREE user is allowed to change channels/quiet-hours freely, but
+    # only rejected if the THRESHOLD fields specifically differ from what's
+    # already stored. Existing values are never silently reset: the current
+    # row is preserved untouched on rejection, see ADR-016 Sonuc Raporu
+    # ("geriye donuk kisitlama, veri korunarak").
+    subscription = await SubscriptionService(repository=SubscriptionDBRepository(db)).get_current(payload.user_id)
+    if subscription["tier"] == SubscriptionTier.FREE.value:
+        current = await _preferences_service(db).get_preferences(payload.user_id)
+        if (
+            payload.minimum_confidence != current["minimum_confidence"]
+            or payload.minimum_discount_pct != current["minimum_discount_pct"]
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "THRESHOLD_CUSTOMIZATION_REQUIRES_PREMIUM",
+                    "message": "Alert threshold customization requires a PREMIUM subscription.",
+                },
+            )
+
     return await _preferences_service(db).set_preferences(
         **payload.model_dump()
     )

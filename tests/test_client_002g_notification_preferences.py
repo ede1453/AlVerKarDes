@@ -16,6 +16,18 @@ def test_real_preferences_write_then_read_roundtrip():
     with TestClient(app) as client:
         headers, user_id = auth_headers_and_user_id(client)
 
+        # BILL-001: threshold customization (minimum_confidence/
+        # minimum_discount_pct away from the stored default) now requires
+        # PREMIUM -- this test specifically exercises non-default threshold
+        # values, so it must checkout first. Channel/quiet-hours-only
+        # writes (the other tests below) are unaffected by this gate.
+        checkout = client.post(
+            "/api/v1/billing/checkout",
+            headers=headers,
+            json={"user_id": user_id, "plan": "PREMIUM"},
+        )
+        assert checkout.status_code == 200, checkout.text
+
         set_response = client.post(
             "/api/v1/deal-notifications/preferences",
             headers=headers,

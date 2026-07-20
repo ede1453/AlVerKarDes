@@ -13,6 +13,18 @@ def test_rc206_rc210_vertical_slice():
             headers=headers,
         )
 
+        # BILL-001: this test sets minimum_discount_pct away from the
+        # default (20 vs 10), which now requires PREMIUM -- without this
+        # checkout the preferences POST below is rejected (403) and
+        # enabled_channels silently stays at the default ["in_app"],
+        # which then breaks the later mark-delivered(channel="push") call.
+        checkout = client.post(
+            "/api/v1/billing/checkout",
+            headers=headers,
+            json={"user_id": user_id, "plan": "PREMIUM"},
+        )
+        assert checkout.status_code == 200, checkout.text
+
         client.post(
             "/api/v1/deal-notifications/preferences",
             headers=headers,

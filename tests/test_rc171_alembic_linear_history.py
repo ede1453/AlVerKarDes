@@ -9,8 +9,8 @@ def test_alembic_history_is_linear():
     # itself already raises AssertionError on branching/duplicate/dangling
     # revisions, so a real chain break fails loudly above this line regardless
     # of what string is asserted here. Bump this whenever a new migration lands
-    # (verified 2026-07-20: chain is genuinely linear, 0001->0019, this was
-    # just stale after 0019_notification_preferences was added -- CLIENT-002g,
-    # also verified clean end-to-end on a fresh throwaway database plus a
+    # (verified 2026-07-20: chain is genuinely linear, 0001->0020, this was
+    # just stale after 0020_subscriptions was added -- BILL-001, also
+    # verified clean end-to-end on a fresh throwaway database plus a
     # downgrade/upgrade roundtrip, not just this structural check).
-    assert result["head"] == "0019_notification_preferences"
+    assert result["head"] == "0020_subscriptions"

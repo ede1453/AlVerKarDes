@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
+from app.domains.billing.db_models import SubscriptionTier
+from app.domains.billing.repository import SubscriptionDBRepository
+from app.domains.billing.service import SubscriptionService
 from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
 from app.domains.identity.models import UserRole
 from app.domains.watchlist.watchlist_repository import WatchlistItemDBRepository
@@ -45,6 +49,29 @@ async def add_watchlist_item(
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
+
+    # BILL-001: FREE tier watchlist cap. Only ACTIVE items count -- a
+    # deactivated item (removed by the user) must not count against the
+    # limit forever, otherwise remove+re-add would permanently shrink a
+    # FREE user's effective capacity. Not a DB-level constraint (no unique
+    # index enforcing count<=N) -- a check-then-insert race is possible
+    # under concurrent requests from the same user, accepted as a known,
+    # low-impact limitation (see ADR-016 Sonuc Raporu) rather than adding a
+    # trigger for a scenario this single-browser-session app doesn't hit.
+    subscription = await SubscriptionService(repository=SubscriptionDBRepository(db)).get_current(payload.user_id)
+    if subscription["tier"] == SubscriptionTier.FREE.value:
+        existing = await _service(db).list_for_user(payload.user_id)
+        active_count = sum(1 for item in existing if item["status"] == "ACTIVE")
+        if active_count >= settings.FREE_TIER_WATCHLIST_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "WATCHLIST_LIMIT_REACHED",
+                    "limit": settings.FREE_TIER_WATCHLIST_LIMIT,
+                    "message": "FREE plan watchlist limit reached -- upgrade to PREMIUM for unlimited watchlist items.",
+                },
+            )
+
     return await _service(db).add_item(payload.model_dump())
 
 
