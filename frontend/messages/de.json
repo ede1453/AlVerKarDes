@@ -8,6 +8,7 @@
       "account": "Mein Konto",
       "watchlist": "Meine Merkliste",
       "notifications": "Benachrichtigungseinstellungen",
+      "profile": "Profil",
       "deals": "Angebote",
       "logout": "Abmelden",
       "login": "Anmelden",
@@ -153,5 +154,23 @@
     "saving": "Wird gespeichert...",
     "savedMessage": "Deine Benachrichtigungseinstellungen wurden gespeichert.",
     "saveError": "Deine Einstellungen konnten nicht gespeichert werden. Bitte versuche es später erneut."
+  },
+  "profile": {
+    "heading": "Profil",
+    "emailLabel": "E-Mail:",
+    "displayNameLabel": "Anzeigename",
+    "languageLabel": "Bevorzugte Sprache",
+    "languageOption": {
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "languageNote": "Damit legst du die Sprache fest, in der wir dir E-Mails senden (z. B. Links zum Zurücksetzen des Passworts). Das ändert nicht, in welcher Sprache du gerade auf der Seite unterwegs bist – benutze dafür den Sprachumschalter oben.",
+    "countryLabel": "Land (2-Buchstaben-Code, z. B. DE, AT, CH)",
+    "currencyLabel": "Bevorzugte Währung:",
+    "saveButton": "Profil speichern",
+    "saving": "Wird gespeichert...",
+    "savedMessage": "Dein Profil wurde gespeichert.",
+    "saveError": "Dein Profil konnte nicht gespeichert werden. Bitte versuche es später erneut.",
+    "validationError": "Bitte überprüfe deine Eingaben: Die Sprache muss Deutsch oder Englisch sein, und das Land muss ein 2-Buchstaben-Code sein."
   }
 }

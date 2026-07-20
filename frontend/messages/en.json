@@ -8,6 +8,7 @@
       "account": "My Account",
       "watchlist": "My Watchlist",
       "notifications": "Notification Settings",
+      "profile": "Profile",
       "deals": "Deals",
       "logout": "Log out",
       "login": "Log in",
@@ -153,5 +154,23 @@
     "saving": "Saving...",
     "savedMessage": "Your notification settings have been saved.",
     "saveError": "Your settings could not be saved. Please try again later."
+  },
+  "profile": {
+    "heading": "Profile",
+    "emailLabel": "Email:",
+    "displayNameLabel": "Display name",
+    "languageLabel": "Preferred language",
+    "languageOption": {
+      "de": "Deutsch",
+      "en": "English"
+    },
+    "languageNote": "This sets the language we use for emails we send you (e.g. password reset links). It does not change what language you're currently browsing in - use the language switcher above for that.",
+    "countryLabel": "Country (2-letter code, e.g. DE, AT, CH)",
+    "currencyLabel": "Preferred currency:",
+    "saveButton": "Save profile",
+    "saving": "Saving...",
+    "savedMessage": "Your profile has been saved.",
+    "saveError": "Your profile could not be saved. Please try again later.",
+    "validationError": "Please check your input: the language must be German or English, and the country must be a 2-letter code."
   }
 }
