@@ -1,6 +1,6 @@
 import type { Locale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BACKEND_ORIGIN, IdentityUser, NotificationPreferences } from "@/lib/backend";
+import { BACKEND_ORIGIN, IdentityUser, NotificationPreferences, Subscription } from "@/lib/backend";
 import { getSessionToken } from "@/lib/session";
 import NotificationPreferencesForm from "@/components/NotificationPreferencesForm";
 
@@ -39,6 +39,19 @@ async function fetchPreferences(
   }
 }
 
+async function fetchSubscription(token: string, userId: string): Promise<Subscription | null> {
+  try {
+    const res = await fetch(`${BACKEND_ORIGIN}/api/v1/billing/subscription/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as Subscription;
+  } catch {
+    return null;
+  }
+}
+
 export default async function NotificationPreferencesPage({
   params,
 }: NotificationPreferencesPageProps) {
@@ -62,15 +75,22 @@ export default async function NotificationPreferencesPage({
     );
   }
 
-  const preferences = await fetchPreferences(token, user.id);
+  const [preferences, subscription] = await Promise.all([
+    fetchPreferences(token, user.id),
+    fetchSubscription(token, user.id),
+  ]);
 
   return (
     <div>
       <h1>{t("heading")}</h1>
-      {preferences === null ? (
+      {preferences === null || subscription === null ? (
         <p className="error-box">{t("fetchError")}</p>
       ) : (
-        <NotificationPreferencesForm userId={user.id} initialPreferences={preferences} />
+        <NotificationPreferencesForm
+          userId={user.id}
+          initialPreferences={preferences}
+          isPremium={subscription.tier === "PREMIUM"}
+        />
       )}
     </div>
   );

@@ -59,6 +59,7 @@ export default async function LocaleLayout({
               <Link href="/watchlist">{t("watchlist")}</Link>
               <Link href="/bildirimler">{t("notifications")}</Link>
               <Link href="/profil">{t("profile")}</Link>
+              <Link href="/abonelik">{t("billing")}</Link>
               <form action="/api/auth/logout" method="post">
                 <button type="submit" className="btn">
                   {t("logout")}

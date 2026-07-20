@@ -9,6 +9,7 @@
       "watchlist": "My Watchlist",
       "notifications": "Notification Settings",
       "profile": "Profile",
+      "billing": "Plan",
       "deals": "Deals",
       "logout": "Log out",
       "login": "Log in",
@@ -56,7 +57,9 @@
     "watchlistAdding": "Adding...",
     "watchlistAdded": "Added to watchlist",
     "watchlistAddError": "The item could not be added to your watchlist. Please try again later.",
-    "watchlistLoginPrompt": "Log in to add this product to your watchlist."
+    "watchlistLoginPrompt": "Log in to add this product to your watchlist.",
+    "watchlistLimitReached": "You've reached the FREE plan watchlist limit.",
+    "watchlistLimitReachedLink": "Upgrade to PREMIUM for unlimited watchlist items."
   },
   "auth": {
     "emailLabel": "Email",
@@ -153,7 +156,9 @@
     "saveButton": "Save settings",
     "saving": "Saving...",
     "savedMessage": "Your notification settings have been saved.",
-    "saveError": "Your settings could not be saved. Please try again later."
+    "saveError": "Your settings could not be saved. Please try again later.",
+    "thresholdLockedMessage": "Customizing alert thresholds requires a PREMIUM subscription. Your current values remain unchanged.",
+    "thresholdLockedLink": "View plans"
   },
   "profile": {
     "heading": "Profile",
@@ -172,5 +177,28 @@
     "savedMessage": "Your profile has been saved.",
     "saveError": "Your profile could not be saved. Please try again later.",
     "validationError": "Please check your input: the language must be German or English, and the country must be a 2-letter code."
+  },
+  "billing": {
+    "heading": "Plan",
+    "fetchError": "An error occurred while loading your plan. The backend could not be reached, please try again later.",
+    "currentPlanLabel": "Current plan:",
+    "currentPlanBadge": "current",
+    "tierFree": "FREE",
+    "tierPremium": "PREMIUM",
+    "tableFeature": "Feature",
+    "featureWatchlistLimit": "Watchlist items",
+    "featureThresholdCustomization": "Custom alert thresholds",
+    "unlimited": "Unlimited",
+    "watchlistLimitValue": "{limit} items",
+    "thresholdCustomYes": "Yes",
+    "thresholdCustomNo": "No (fixed default)",
+    "unknown": "Unknown",
+    "mockDisclaimer": "This is a demo/test checkout - no real payment is processed, the upgrade happens with a single click.",
+    "upgradeButton": "Upgrade to PREMIUM",
+    "upgrading": "Upgrading...",
+    "cancelButton": "Cancel / return to FREE",
+    "cancelling": "Cancelling...",
+    "actionError": "The request could not be completed. Please try again later.",
+    "providerReferenceLabel": "Payment reference: {reference}"
   }
 }

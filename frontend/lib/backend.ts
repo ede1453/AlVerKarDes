@@ -135,3 +135,20 @@ export interface NotificationPreferencesUpdateResponse {
   updated: boolean;
   preferences: NotificationPreferences;
 }
+
+export interface Plan {
+  tier: "FREE" | "PREMIUM" | string;
+  watchlist_limit: number | null;
+  threshold_customization: boolean;
+}
+
+export interface PlansResponse {
+  plans: Plan[];
+}
+
+export interface Subscription {
+  user_id: string;
+  tier: "FREE" | "PREMIUM" | string;
+  provider_reference: string | null;
+  updated_at: string | null;
+}

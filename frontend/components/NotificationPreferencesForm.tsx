@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import {
   NotificationPreferences,
   NotificationPreferencesUpdateResponse,
@@ -10,6 +11,12 @@ import {
 interface NotificationPreferencesFormProps {
   userId: string;
   initialPreferences: NotificationPreferences;
+  // BILL-001: threshold customization (minimum_confidence/minimum_discount_pct)
+  // is PREMIUM-only server-side (see app/api/v1/deal_notifications_router.py).
+  // The form mirrors that here so a FREE user gets an honest, disabled input
+  // + explanation instead of typing a value and hitting a surprise 403 on
+  // submit.
+  isPremium: boolean;
 }
 
 type Status = "idle" | "saving" | "saved" | "error";
@@ -22,6 +29,7 @@ const CHANNELS = ["in_app", "email", "push"] as const;
 export default function NotificationPreferencesForm({
   userId,
   initialPreferences,
+  isPremium,
 }: NotificationPreferencesFormProps) {
   const t = useTranslations("notificationPreferences");
   const [preferences, setPreferences] = useState<NotificationPreferences>(initialPreferences);
@@ -102,6 +110,7 @@ export default function NotificationPreferencesForm({
           min={0}
           max={100}
           value={preferences.minimum_confidence}
+          disabled={!isPremium}
           onChange={(e) =>
             setPreferences((prev) => ({
               ...prev,
@@ -119,6 +128,7 @@ export default function NotificationPreferencesForm({
           min={0}
           max={100}
           value={preferences.minimum_discount_pct}
+          disabled={!isPremium}
           onChange={(e) =>
             setPreferences((prev) => ({
               ...prev,
@@ -127,6 +137,13 @@ export default function NotificationPreferencesForm({
           }
         />
       </div>
+
+      {!isPremium && (
+        <p className="notice-box">
+          {t("thresholdLockedMessage")}{" "}
+          <Link href="/abonelik">{t("thresholdLockedLink")}</Link>
+        </p>
+      )}
 
       <div className="form-field">
         <label>

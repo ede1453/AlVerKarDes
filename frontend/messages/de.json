@@ -9,6 +9,7 @@
       "watchlist": "Meine Merkliste",
       "notifications": "Benachrichtigungseinstellungen",
       "profile": "Profil",
+      "billing": "Tarif",
       "deals": "Angebote",
       "logout": "Abmelden",
       "login": "Anmelden",
@@ -56,7 +57,9 @@
     "watchlistAdding": "Wird hinzugefügt...",
     "watchlistAdded": "Zur Merkliste hinzugefügt",
     "watchlistAddError": "Der Artikel konnte nicht zur Merkliste hinzugefügt werden. Bitte versuche es später erneut.",
-    "watchlistLoginPrompt": "Melde dich an, um dieses Produkt zu deiner Merkliste hinzuzufügen."
+    "watchlistLoginPrompt": "Melde dich an, um dieses Produkt zu deiner Merkliste hinzuzufügen.",
+    "watchlistLimitReached": "Du hast das Merklisten-Limit des FREE-Tarifs erreicht.",
+    "watchlistLimitReachedLink": "Upgrade auf PREMIUM für unbegrenzte Merklisten-Einträge."
   },
   "auth": {
     "emailLabel": "E-Mail",
@@ -153,7 +156,9 @@
     "saveButton": "Einstellungen speichern",
     "saving": "Wird gespeichert...",
     "savedMessage": "Deine Benachrichtigungseinstellungen wurden gespeichert.",
-    "saveError": "Deine Einstellungen konnten nicht gespeichert werden. Bitte versuche es später erneut."
+    "saveError": "Deine Einstellungen konnten nicht gespeichert werden. Bitte versuche es später erneut.",
+    "thresholdLockedMessage": "Das Anpassen der Warnschwellen erfordert ein PREMIUM-Abonnement. Deine aktuellen Werte bleiben unverändert erhalten.",
+    "thresholdLockedLink": "Tarife ansehen"
   },
   "profile": {
     "heading": "Profil",
@@ -172,5 +177,28 @@
     "savedMessage": "Dein Profil wurde gespeichert.",
     "saveError": "Dein Profil konnte nicht gespeichert werden. Bitte versuche es später erneut.",
     "validationError": "Bitte überprüfe deine Eingaben: Die Sprache muss Deutsch oder Englisch sein, und das Land muss ein 2-Buchstaben-Code sein."
+  },
+  "billing": {
+    "heading": "Tarif",
+    "fetchError": "Beim Laden deines Tarifs ist ein Fehler aufgetreten. Das Backend konnte nicht erreicht werden, bitte versuche es später erneut.",
+    "currentPlanLabel": "Aktueller Tarif:",
+    "currentPlanBadge": "aktuell",
+    "tierFree": "FREE",
+    "tierPremium": "PREMIUM",
+    "tableFeature": "Funktion",
+    "featureWatchlistLimit": "Merklisten-Einträge",
+    "featureThresholdCustomization": "Eigene Warnschwellen",
+    "unlimited": "Unbegrenzt",
+    "watchlistLimitValue": "{limit} Einträge",
+    "thresholdCustomYes": "Ja",
+    "thresholdCustomNo": "Nein (feste Voreinstellung)",
+    "unknown": "Unbekannt",
+    "mockDisclaimer": "Dies ist ein Demo-/Test-Checkout – es wird keine echte Zahlung verarbeitet, das Upgrade erfolgt mit einem einzigen Klick.",
+    "upgradeButton": "Auf PREMIUM upgraden",
+    "upgrading": "Wird hochgestuft...",
+    "cancelButton": "Kündigen / zu FREE zurückkehren",
+    "cancelling": "Wird gekündigt...",
+    "actionError": "Die Anfrage konnte nicht abgeschlossen werden. Bitte versuche es später erneut.",
+    "providerReferenceLabel": "Zahlungsreferenz: {reference}"
   }
 }
