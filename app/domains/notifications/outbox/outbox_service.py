@@ -3,9 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+from app.domains.leader_election.leader_election_store_factory import get_leader_election_store
 from app.domains.notifications.outbox.outbox_models import NotificationOutboxItem
 from app.domains.notifications.outbox.outbox_repository import InMemoryNotificationOutboxRepository
 from app.domains.notifications.outbox.retry_policy import RETRY_POLICY
+
+# SCALE-002: single fixed lock key -- this service manages exactly one
+# leader lock (itself). See app/domains/leader_election/.
+_LEADER_LOCK_KEY = "notification_outbox"
 
 
 class NotificationOutboxService:
@@ -59,10 +64,10 @@ class NotificationOutboxService:
             }
             for check_name in self.REQUIRED_READINESS_CHECKS
         }
-        self._leader_state: dict = {
-            "leader_id": None,
-            "lease_expires_at": None,
-        }
+        # SCALE-002: leader-election state moved to an env-driven store
+        # (Redis-backed in prod, in-memory fallback for tests/local) --
+        # get_leader_election_store() is the SCALE-001 factory pattern.
+        self._leader_store = get_leader_election_store()
 
     def enqueue(self, payload: dict) -> dict:
         item = NotificationOutboxItem(
@@ -799,19 +804,17 @@ class NotificationOutboxService:
         }
         
     def get_leader_status(self) -> dict:
-        leader_id = self._leader_state["leader_id"]
+        current = self._leader_store.status(_LEADER_LOCK_KEY)
+        leader_id = current["leader_id"]
 
         return {
             "leader_id": leader_id,
             "has_leader": leader_id is not None,
-            "lease_expires_at": self._leader_state[
-                "lease_expires_at"
-            ],
+            "lease_expires_at": current["lease_expires_at"],
             "metadata": {
                 "leader_election_version": "leader_election_v1"
             },
         }
-
 
     def acquire_leadership(
         self,
@@ -821,41 +824,15 @@ class NotificationOutboxService:
         if lease_seconds <= 0:
             raise ValueError("lease_seconds must be greater than zero")
 
-        current_leader = self._leader_state["leader_id"]
-
-        if current_leader is not None and current_leader != worker_id:
-            return {
-                "acquired": False,
-                "reason": "LEADER_ALREADY_ACTIVE",
-                "leader_id": current_leader,
-                "lease_expires_at": self._leader_state[
-                    "lease_expires_at"
-                ],
-                "metadata": {
-                    "leader_election_version": "leader_election_v1"
-                },
-            }
-
-        lease_expires_at = (
-            datetime.now(timezone.utc)
-            + timedelta(seconds=lease_seconds)
-        ).isoformat()
-
-        self._leader_state = {
-            "leader_id": worker_id,
-            "lease_expires_at": lease_expires_at,
-        }
-
+        result = self._leader_store.acquire(
+            key=_LEADER_LOCK_KEY,
+            worker_id=worker_id,
+            lease_seconds=lease_seconds,
+        )
         return {
-            "acquired": True,
-            "reason": "LEADERSHIP_ACQUIRED",
-            "leader_id": worker_id,
-            "lease_expires_at": lease_expires_at,
-            "metadata": {
-                "leader_election_version": "leader_election_v1"
-            },
+            **result,
+            "metadata": {"leader_election_version": "leader_election_v1"},
         }
-
 
     def renew_leadership(
         self,
@@ -865,61 +842,21 @@ class NotificationOutboxService:
         if lease_seconds <= 0:
             raise ValueError("lease_seconds must be greater than zero")
 
-        if self._leader_state["leader_id"] != worker_id:
-            return {
-                "renewed": False,
-                "reason": "NOT_CURRENT_LEADER",
-                "leader_id": self._leader_state["leader_id"],
-                "lease_expires_at": self._leader_state[
-                    "lease_expires_at"
-                ],
-                "metadata": {
-                    "leader_election_version": "leader_election_v1"
-                },
-            }
-
-        lease_expires_at = (
-            datetime.now(timezone.utc)
-            + timedelta(seconds=lease_seconds)
-        ).isoformat()
-
-        self._leader_state["lease_expires_at"] = lease_expires_at
-
+        result = self._leader_store.renew(
+            key=_LEADER_LOCK_KEY,
+            worker_id=worker_id,
+            lease_seconds=lease_seconds,
+        )
         return {
-            "renewed": True,
-            "reason": "LEADERSHIP_RENEWED",
-            "leader_id": worker_id,
-            "lease_expires_at": lease_expires_at,
-            "metadata": {
-                "leader_election_version": "leader_election_v1"
-            },
+            **result,
+            "metadata": {"leader_election_version": "leader_election_v1"},
         }
-
 
     def release_leadership(self, worker_id: str) -> dict:
-        if self._leader_state["leader_id"] != worker_id:
-            return {
-                "released": False,
-                "reason": "NOT_CURRENT_LEADER",
-                "leader_id": self._leader_state["leader_id"],
-                "metadata": {
-                    "leader_election_version": "leader_election_v1"
-                },
-            }
-
-        self._leader_state = {
-            "leader_id": None,
-            "lease_expires_at": None,
-        }
-
+        result = self._leader_store.release(key=_LEADER_LOCK_KEY, worker_id=worker_id)
         return {
-            "released": True,
-            "reason": "LEADERSHIP_RELEASED",
-            "leader_id": None,
-            "lease_expires_at": None,
-            "metadata": {
-                "leader_election_version": "leader_election_v1"
-            },
+            **result,
+            "metadata": {"leader_election_version": "leader_election_v1"},
         }
 
     def register_instance(
