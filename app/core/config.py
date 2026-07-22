@@ -51,6 +51,15 @@ class Settings(BaseSettings):
     # FREE tier watchlist item cap -- single source of truth, referenced
     # from watchlist_router.py's quota check instead of a magic number.
     FREE_TIER_WATCHLIST_LIMIT: int = 10
+    # BILL-002: FREE tier deal notifications are batched (a real, enforced
+    # delay before they become deliverable -- see
+    # DealNotificationService.mark_delivered()'s NOT_YET_SCHEDULED gate);
+    # PREMIUM is delivered instantly (delay 0). The exact production value
+    # is a business decision, not something to invent authoritatively --
+    # this default is a small, honestly-labeled placeholder chosen to be
+    # both real and practically verifiable, same spirit as
+    # FREE_TIER_WATCHLIST_LIMIT above.
+    FREE_TIER_NOTIFICATION_BATCH_DELAY_SECONDS: int = 30
 
     model_config = SettingsConfigDict(
         env_file=".env",

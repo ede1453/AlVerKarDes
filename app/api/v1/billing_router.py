@@ -29,22 +29,26 @@ class CancelRequest(BaseModel):
 
 @router.get("/plans")
 def list_plans():
-    # PUBLIC -- static plan comparison data, no auth needed. Only the
-    # limits actually enforced elsewhere (watchlist_router.py,
-    # deal_notifications_router.py) are reflected here; no aspirational
-    # feature ("priority delivery" etc.) is claimed that isn't real yet --
-    # see ADR-016 Sonuc Raporu.
+    # PUBLIC -- static plan comparison data, no auth needed. Only limits
+    # actually enforced elsewhere are reflected here (watchlist_router.py,
+    # deal_notifications_router.py, deal_notifications/service.py's
+    # NOT_YET_SCHEDULED gate for BILL-002) -- no aspirational feature is
+    # claimed that isn't real, see ADR-016 Sonuc Raporu.
     return {
         "plans": [
             {
                 "tier": SubscriptionTier.FREE.value,
                 "watchlist_limit": settings.FREE_TIER_WATCHLIST_LIMIT,
                 "threshold_customization": False,
+                "instant_notifications": False,
+                "notification_delay_seconds": settings.FREE_TIER_NOTIFICATION_BATCH_DELAY_SECONDS,
             },
             {
                 "tier": SubscriptionTier.PREMIUM.value,
                 "watchlist_limit": None,
                 "threshold_customization": True,
+                "instant_notifications": True,
+                "notification_delay_seconds": 0,
             },
         ]
     }

@@ -122,8 +122,10 @@ async def build_notification(
 ):
     ensure_owner(current_user, payload.user_id)
     preferences = await _preferences_service(db).get_preferences(payload.user_id)
+    subscription = await SubscriptionService(repository=SubscriptionDBRepository(db)).get_current(payload.user_id)
     return await _service.build_notification(
         preferences=preferences,
+        tier=subscription["tier"],
         **payload.model_dump()
     )
 

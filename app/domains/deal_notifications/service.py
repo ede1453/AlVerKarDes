@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.core.config import settings
 from app.domains.deal_notifications.repository import InMemoryNotificationPreferenceRepository
 
 
@@ -233,6 +234,7 @@ class DealNotificationService:
         deal: dict[str, Any],
         at_time: str,
         preferences: dict[str, Any] | None = None,
+        tier: str = "FREE",
     ) -> dict[str, Any]:
         # CLIENT-002g: preferences can be passed in explicitly (the router
         # does this, fetching from the real Postgres-backed repository) --
@@ -302,6 +304,19 @@ class DealNotificationService:
             else "DEFERRED"
         )
 
+        # BILL-002: FREE tier notifications are genuinely batched, not just
+        # labeled as such -- mark_delivered() below refuses to deliver a
+        # notification before its own scheduled_delivery_at, a real
+        # wall-clock gate. PREMIUM's window is "now" (instant). This reuses
+        # the existing eligibility/routing pipeline entirely; no new
+        # queue/worker system, see WIKI_ROOT ADR-016.
+        now = datetime.now(timezone.utc)
+        scheduled_delivery_at = (
+            now
+            if tier == "PREMIUM"
+            else now + timedelta(seconds=settings.FREE_TIER_NOTIFICATION_BATCH_DELAY_SECONDS)
+        )
+
         notification = {
             "notification_id": notification_id,
             "user_id": user_id,
@@ -311,6 +326,8 @@ class DealNotificationService:
             ),
             "status": status,
             "urgent": urgent,
+            "tier": tier,
+            "scheduled_delivery_at": scheduled_delivery_at.isoformat(),
             "title": (
                 "Çok güçlü fırsat"
                 if urgent
@@ -389,6 +406,20 @@ class DealNotificationService:
             return {
                 "updated": False,
                 "reason": "CHANNEL_NOT_ROUTED",
+            }
+
+        # BILL-002: the real batching gate -- a FREE-tier notification
+        # cannot be marked delivered before its own scheduled_delivery_at
+        # (set in build_notification()) actually arrives. Older
+        # notifications built before this field existed have no key here
+        # (.get(...) is None) and are treated as immediately deliverable,
+        # matching pre-BILL-002 behavior.
+        scheduled_at = notification.get("scheduled_delivery_at")
+        if scheduled_at and datetime.fromisoformat(scheduled_at) > datetime.now(timezone.utc):
+            return {
+                "updated": False,
+                "reason": "NOT_YET_SCHEDULED",
+                "scheduled_delivery_at": scheduled_at,
             }
 
         notification["status"] = "DELIVERED"

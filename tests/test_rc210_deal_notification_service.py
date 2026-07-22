@@ -14,9 +14,16 @@ async def test_rc210_build_and_deliver_notification():
         quiet_hours_enabled=False,
     )
 
+    # BILL-002: FREE-tier notifications (the default) now carry a real
+    # scheduled_delivery_at in the future and are genuinely refused by
+    # mark_delivered() until it passes -- this test is about the build/
+    # deliver mechanics, not tier-gating (see
+    # tests/test_bill_002_notification_priority.py for that), so it uses
+    # tier="PREMIUM" (instant) to keep testing immediate delivery.
     created = await service.build_notification(
         user_id="user-1",
         at_time="2026-07-12T12:00:00+03:00",
+        tier="PREMIUM",
         deal={
             "deal_id":"deal-1",
             "canonical_product_key":"product-1",
