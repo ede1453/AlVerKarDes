@@ -19,6 +19,8 @@ class JobRecord:
     error: str | None
     created_at: datetime
     updated_at: datetime
+    locked_by: str | None = None
+    locked_at: datetime | None = None
 
 
 def create_job_record(data: JobCreate) -> JobRecord:
@@ -32,4 +34,6 @@ def create_job_record(data: JobCreate) -> JobRecord:
         error=None,
         created_at=now,
         updated_at=now,
+        locked_by=None,
+        locked_at=None,
     )

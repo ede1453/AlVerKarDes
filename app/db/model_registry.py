@@ -5,3 +5,4 @@ from app.domains.recommendations.models import Recommendation, RecommendationSes
 from app.domains.deal_notifications.db_models import NotificationPreferenceModel  # noqa: F401
 from app.domains.watchlist.db_models import WatchlistItemModel  # noqa: F401
 from app.domains.billing.db_models import SubscriptionModel  # noqa: F401
+from app.domains.jobs.db_models import JobModel  # noqa: F401
