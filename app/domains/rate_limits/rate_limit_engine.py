@@ -1,7 +1,8 @@
 from datetime import timedelta
+from typing import Any
 
 from app.domains.rate_limits.rate_limit_models import RateLimitCheck, RateLimitRule
-from app.domains.rate_limits.rate_limit_store import InMemoryRateLimitStore
+from app.domains.rate_limits.rate_limit_store_factory import get_rate_limit_store
 
 
 class RateLimitEngine:
@@ -17,10 +18,15 @@ class RateLimitEngine:
 
     def __init__(
         self,
-        store: InMemoryRateLimitStore | None = None,
+        store: Any | None = None,
         rules: dict[str, RateLimitRule] | None = None,
     ):
-        self.store = store or InMemoryRateLimitStore()
+        # SCALE-001: get_rate_limit_store() is env-driven (AICI_CACHE_BACKEND,
+        # same switch the cache backend already uses) -- defaults to
+        # InMemoryRateLimitStore only when redis isn't configured (e.g. bare
+        # unit tests). Both stores implement the same
+        # increment(key, scope, window_seconds) -> RateLimitUsage contract.
+        self.store = store or get_rate_limit_store()
         self.rules = rules or dict(self.DEFAULT_RULES)
 
     def check(self, *, key: str, scope: str) -> RateLimitCheck:
