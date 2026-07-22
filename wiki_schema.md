@@ -57,3 +57,7 @@ Her işlem `LOG`'a şu satırı ekler (en yeni en üstte):
 ```
 - YYYY-MM-DD HH:MM | INGEST|QUERY | <kısa özet> | değişen/okunan sayfalar: [[...]], [[...]]
 ```
+
+## 5. Organik Gelişim Kanunu (özet)
+Her yeni bileşen küçük ama kendi içinde eksiksiz doğmalı; büyütme esas, sürekli yeniden inşa değil. Bir görevi başka bir modele/subagent'a devrederken bu kurala tam olarak uyulması gerektiğini açıkça belirt.
+Tam metin: `WIKI_ROOT/LAW.md`.
