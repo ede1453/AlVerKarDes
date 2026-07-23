@@ -3,11 +3,17 @@ from fastapi.testclient import TestClient
 from app.main import app
 from tests.auth_test_helpers import internal_service_headers, operator_headers
 
+# SCALE-007 Part 1: shared/persistent DB -- no /clear, membership check via
+# GET /pending instead of an actual claim (same reasoning as
+# test_rc71_dead_letter_queue_vertical_slice.py: a replayed item's old
+# created_at makes it a prime target for ANY concurrently-running test's
+# unrelated claim-next() call, so an actual claim here would be flaky under
+# `pytest -n auto`).
+
 
 def test_rc72_vertical_slice_dead_letter_replay_with_audit_then_claim():
     with TestClient(app) as client:
         headers = operator_headers(client)
-        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
         queued = client.post(
             "/api/v1/notification-outbox/enqueue",
@@ -23,6 +29,7 @@ def test_rc72_vertical_slice_dead_letter_replay_with_audit_then_claim():
         for _ in range(3):
             client.post(
                 "/api/v1/notification-outbox/claim-next",
+                json={"worker_id": "worker-rc72-vertical"},
                 headers=internal_service_headers(),
             )
             failed = client.post(
@@ -35,7 +42,7 @@ def test_rc72_vertical_slice_dead_letter_replay_with_audit_then_claim():
             ).json()
             if failed["item"]["status"] != "DEAD_LETTER":
                 client.post(
-                    "/api/v1/notification-outbox/requeue-due-retries",
+                    "/api/v1/notification-outbox/requeue-due-retries?limit=200",
                     headers=internal_service_headers(),
                 )
 
@@ -49,12 +56,12 @@ def test_rc72_vertical_slice_dead_letter_replay_with_audit_then_claim():
         ).json()
 
         assert replayed["item"]["status"] == "PENDING"
+        assert replayed["item"]["payload"]["dlq_replay"]["reason"] == "operator_reviewed"
 
-        claimed = client.post(
-            "/api/v1/notification-outbox/claim-next",
-            headers=internal_service_headers(),
+        pending = client.get(
+            "/api/v1/notification-outbox/pending?limit=200", headers=headers
         ).json()
 
-    assert claimed["claimed"] is True
-    assert claimed["item"]["id"] == queued["id"]
-    assert claimed["item"]["payload"]["dlq_replay"]["reason"] == "operator_reviewed"
+    pending_by_id = {item["id"]: item for item in pending["items"]}
+    assert queued["id"] in pending_by_id
+    assert pending_by_id[queued["id"]]["payload"]["dlq_replay"]["reason"] == "operator_reviewed"

@@ -29,6 +29,12 @@ class NotificationOutboxItem:
     snoozed_until: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # SCALE-007: claim ownership, mirrors JobRecord/ProviderScheduleRecord's
+    # locked_by/locked_at (SCALE-003/004). Only ever set by claim_next() on
+    # the repository (DB or in-memory) -- never by the dataclass methods
+    # below, since the atomic claim happens at the storage layer.
+    locked_by: str | None = None
+    locked_at: datetime | None = None
 
     def snooze(self, until: str) -> None:
         self.snoozed_until = until
@@ -41,6 +47,8 @@ class NotificationOutboxItem:
     def mark_delivered(self) -> None:
         self.status = DELIVERED
         self.last_error = None
+        self.locked_by = None
+        self.locked_at = None
         self.updated_at = datetime.now(timezone.utc)
 
     def mark_failed(
@@ -58,6 +66,8 @@ class NotificationOutboxItem:
             self.status = FAILED
             self.next_retry_at = next_retry_at
 
+        self.locked_by = None
+        self.locked_at = None
         self.updated_at = datetime.now(timezone.utc)
 
     def to_dict(self) -> dict:
@@ -78,10 +88,14 @@ class NotificationOutboxItem:
             "snoozed_until": self.snoozed_until,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "locked_by": self.locked_by,
+            "locked_at": self.locked_at.isoformat() if self.locked_at else None,
         }
 
     def mark_pending_for_retry(self) -> None:
         self.status = PENDING
+        self.locked_by = None
+        self.locked_at = None
         self.updated_at = datetime.now(timezone.utc)
 
     def replay_from_dead_letter(
@@ -102,4 +116,6 @@ class NotificationOutboxItem:
         self.status = PENDING
         self.last_error = None
         self.next_retry_at = None
+        self.locked_by = None
+        self.locked_at = None
         self.updated_at = datetime.now(timezone.utc)

@@ -1,14 +1,17 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from tests.auth_test_helpers import internal_service_headers, operator_headers
+from tests.auth_test_helpers import internal_service_headers
+
+# SCALE-007 Part 1: this suite runs against a real, shared, persistent dev
+# database -- POST /clear would wipe rows other parallel tests depend on, so
+# it's no longer used here. Assertions check membership/absence of our own
+# item_id instead of exclusive-table-state counts (same discipline as
+# test_rc34_job_queue_api_contract.py).
 
 
 def test_rc70_vertical_slice_fail_with_backoff_then_scheduler_waits():
     with TestClient(app) as client:
-        headers = operator_headers(client)
-        client.post("/api/v1/notification-outbox/clear", headers=headers)
-
         queued = client.post(
             "/api/v1/notification-outbox/enqueue",
             json={
@@ -22,6 +25,7 @@ def test_rc70_vertical_slice_fail_with_backoff_then_scheduler_waits():
 
         client.post(
             "/api/v1/notification-outbox/claim-next",
+            json={"worker_id": "worker-rc70-vertical-1"},
             headers=internal_service_headers(),
         )
 
@@ -35,18 +39,16 @@ def test_rc70_vertical_slice_fail_with_backoff_then_scheduler_waits():
         assert failed["item"]["next_retry_at"] is not None
 
         requeue = client.post(
-            "/api/v1/notification-outbox/requeue-due-retries",
+            "/api/v1/notification-outbox/requeue-due-retries?limit=200",
             headers=internal_service_headers(),
         ).json()
 
-        assert requeue["requeued_count"] == 0
+        requeued_ids = [item["id"] for item in requeue["items"]]
+        assert queued["id"] not in requeued_ids
 
 
 def test_rc70_vertical_slice_explicit_due_time_still_requeues_immediately():
     with TestClient(app) as client:
-        headers = operator_headers(client)
-        client.post("/api/v1/notification-outbox/clear", headers=headers)
-
         queued = client.post(
             "/api/v1/notification-outbox/enqueue",
             json={
@@ -60,6 +62,7 @@ def test_rc70_vertical_slice_explicit_due_time_still_requeues_immediately():
 
         client.post(
             "/api/v1/notification-outbox/claim-next",
+            json={"worker_id": "worker-rc70-vertical-2"},
             headers=internal_service_headers(),
         )
 
@@ -73,9 +76,10 @@ def test_rc70_vertical_slice_explicit_due_time_still_requeues_immediately():
         )
 
         requeue = client.post(
-            "/api/v1/notification-outbox/requeue-due-retries",
+            "/api/v1/notification-outbox/requeue-due-retries?limit=200",
             headers=internal_service_headers(),
         ).json()
 
-        assert requeue["requeued_count"] == 1
-        assert requeue["items"][0]["status"] == "PENDING"
+        requeued_by_id = {item["id"]: item for item in requeue["items"]}
+        assert queued["id"] in requeued_by_id
+        assert requeued_by_id[queued["id"]]["status"] == "PENDING"

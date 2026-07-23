@@ -1,18 +1,18 @@
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
-def test_rc68_claim_next_returns_no_item_when_empty():
+async def test_rc68_claim_next_returns_no_item_when_empty():
     service = NotificationOutboxService()
 
-    result = service.claim_next()
+    result = await service.claim_next(worker_id="worker-rc68")
 
     assert result["claimed"] is False
     assert result["item"] is None
 
 
-def test_rc68_claim_next_marks_pending_item_processing():
+async def test_rc68_claim_next_marks_pending_item_processing():
     service = NotificationOutboxService()
-    queued = service.enqueue(
+    queued = await service.enqueue(
         {
             "user_id": "rc68-user",
             "title": "RC68",
@@ -21,31 +21,31 @@ def test_rc68_claim_next_marks_pending_item_processing():
         }
     )
 
-    result = service.claim_next()
+    result = await service.claim_next(worker_id="worker-rc68")
 
     assert result["claimed"] is True
     assert result["item"]["id"] == queued["id"]
     assert result["item"]["status"] == "PROCESSING"
 
 
-def test_rc68_mark_delivered_updates_claimed_item():
+async def test_rc68_mark_delivered_updates_claimed_item():
     service = NotificationOutboxService()
-    service.enqueue({"user_id": "rc68-user", "title": "RC68", "message": "Delivered"})
-    claimed = service.claim_next()
+    await service.enqueue({"user_id": "rc68-user", "title": "RC68", "message": "Delivered"})
+    claimed = await service.claim_next(worker_id="worker-rc68")
 
-    result = service.mark_delivered(claimed["item"]["id"])
+    result = await service.mark_delivered(claimed["item"]["id"])
 
     assert result["updated"] is True
     assert result["item"]["status"] == "DELIVERED"
     assert result["item"]["last_error"] is None
 
 
-def test_rc68_mark_failed_updates_retry_count():
+async def test_rc68_mark_failed_updates_retry_count():
     service = NotificationOutboxService()
-    service.enqueue({"user_id": "rc68-user", "title": "RC68", "message": "Failed"})
-    claimed = service.claim_next()
+    await service.enqueue({"user_id": "rc68-user", "title": "RC68", "message": "Failed"})
+    claimed = await service.claim_next(worker_id="worker-rc68")
 
-    result = service.mark_failed(claimed["item"]["id"], error="PROVIDER_TIMEOUT")
+    result = await service.mark_failed(claimed["item"]["id"], error="PROVIDER_TIMEOUT")
 
     assert result["updated"] is True
     assert result["item"]["status"] == "FAILED"
@@ -53,10 +53,10 @@ def test_rc68_mark_failed_updates_retry_count():
     assert result["item"]["last_error"] == "PROVIDER_TIMEOUT"
 
 
-def test_rc68_mark_missing_item_returns_not_found():
+async def test_rc68_mark_missing_item_returns_not_found():
     service = NotificationOutboxService()
 
-    result = service.mark_delivered("missing-id")
+    result = await service.mark_delivered("missing-id")
 
     assert result["updated"] is False
     assert result["error"] == "NOT_FOUND"

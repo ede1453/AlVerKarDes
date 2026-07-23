@@ -1,10 +1,10 @@
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
-def test_rc80_digest_summary_empty():
+async def test_rc80_digest_summary_empty():
     service = NotificationOutboxService()
 
-    result = service.build_digest_summary(user_id="rc80-user")
+    result = await service.build_digest_summary(user_id="rc80-user")
 
     assert result["user_id"] == "rc80-user"
     assert result["item_count"] == 0
@@ -12,10 +12,10 @@ def test_rc80_digest_summary_empty():
     assert result["metadata"]["digest_version"] == "notification_digest_v1"
 
 
-def test_rc80_digest_summary_groups_pending_items_for_user():
+async def test_rc80_digest_summary_groups_pending_items_for_user():
     service = NotificationOutboxService()
 
-    first = service.enqueue(
+    first = await service.enqueue(
         {
             "user_id": "rc80-user",
             "title": "Deal 1",
@@ -23,7 +23,7 @@ def test_rc80_digest_summary_groups_pending_items_for_user():
             "payload": {"product_key": "macbook-air"},
         }
     )
-    second = service.enqueue(
+    second = await service.enqueue(
         {
             "user_id": "rc80-user",
             "title": "Deal 2",
@@ -31,7 +31,7 @@ def test_rc80_digest_summary_groups_pending_items_for_user():
             "payload": {"product_key": "ipad-air"},
         }
     )
-    service.enqueue(
+    await service.enqueue(
         {
             "user_id": "other-user",
             "title": "Other",
@@ -40,7 +40,7 @@ def test_rc80_digest_summary_groups_pending_items_for_user():
         }
     )
 
-    result = service.build_digest_summary(user_id="rc80-user")
+    result = await service.build_digest_summary(user_id="rc80-user")
 
     assert result["item_count"] == 2
     assert [item["id"] for item in result["items"]] == [first["id"], second["id"]]

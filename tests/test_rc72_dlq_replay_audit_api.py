@@ -19,6 +19,7 @@ def _make_dead_letter_via_api(client) -> dict:
     for _ in range(3):
         client.post(
             "/api/v1/notification-outbox/claim-next",
+            json={"worker_id": "worker-rc72"},
             headers=internal_service_headers(),
         )
         failed = client.post(
@@ -31,7 +32,7 @@ def _make_dead_letter_via_api(client) -> dict:
         ).json()
         if failed["item"]["status"] != "DEAD_LETTER":
             client.post(
-                "/api/v1/notification-outbox/requeue-due-retries",
+                "/api/v1/notification-outbox/requeue-due-retries?limit=200",
                 headers=internal_service_headers(),
             )
 
@@ -39,9 +40,10 @@ def _make_dead_letter_via_api(client) -> dict:
 
 
 def test_rc72_replay_dead_letter_api_accepts_audit_payload():
+    # SCALE-007 Part 1: shared/persistent DB -- no /clear (see
+    # test_rc34_job_queue_api_contract.py discipline).
     with TestClient(app) as client:
         headers = operator_headers(client)
-        client.post("/api/v1/notification-outbox/clear", headers=headers)
         queued = _make_dead_letter_via_api(client)
 
         response = client.post(

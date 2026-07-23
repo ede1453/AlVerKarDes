@@ -3,10 +3,10 @@ from app.domains.notifications.outbox.outbox_service import (
 )
 
 
-def test_rc74_channel_health_empty():
+async def test_rc74_channel_health_empty():
     service = NotificationOutboxService()
 
-    result = service.get_channel_health()
+    result = await service.get_channel_health()
 
     assert result["channels"] == []
     assert (

@@ -5,10 +5,11 @@ from tests.auth_test_helpers import auth_headers_and_user_id, internal_service_h
 
 
 def test_rc80_digest_summary_api_contract():
+    # SCALE-007 Part 1: no /clear (shared/persistent DB, would disrupt
+    # other parallel tests) -- unnecessary here anyway, since digest is
+    # scoped to this test's own freshly-registered (unique) user_id.
     with TestClient(app) as client:
         headers, user_id = auth_headers_and_user_id(client)
-
-        client.post("/api/v1/notification-outbox/clear", headers=headers)
 
         client.post(
             "/api/v1/notification-outbox/enqueue",

@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
-def test_rc70_mark_failed_calculates_backoff_when_next_retry_at_not_given():
+async def test_rc70_mark_failed_calculates_backoff_when_next_retry_at_not_given():
     service = NotificationOutboxService()
-    queued = service.enqueue(
+    queued = await service.enqueue(
         {
             "user_id": "rc70-user",
             "title": "RC70",
@@ -14,9 +14,9 @@ def test_rc70_mark_failed_calculates_backoff_when_next_retry_at_not_given():
         }
     )
 
-    service.claim_next()
+    await service.claim_next(worker_id="worker-rc70")
     before = datetime.now(timezone.utc)
-    failed = service.mark_failed(item_id=queued["id"], error="PROVIDER_TIMEOUT")
+    failed = await service.mark_failed(item_id=queued["id"], error="PROVIDER_TIMEOUT")
     after = datetime.now(timezone.utc)
 
     assert failed["updated"] is True
@@ -29,9 +29,9 @@ def test_rc70_mark_failed_calculates_backoff_when_next_retry_at_not_given():
     assert next_retry_at > after
 
 
-def test_rc70_mark_failed_preserves_explicit_next_retry_at_for_rc69_compatibility():
+async def test_rc70_mark_failed_preserves_explicit_next_retry_at_for_rc69_compatibility():
     service = NotificationOutboxService()
-    queued = service.enqueue(
+    queued = await service.enqueue(
         {
             "user_id": "rc70-user",
             "title": "RC70",
@@ -40,10 +40,10 @@ def test_rc70_mark_failed_preserves_explicit_next_retry_at_for_rc69_compatibilit
         }
     )
 
-    service.claim_next()
+    await service.claim_next(worker_id="worker-rc70")
     explicit_next_retry_at = "2000-01-01T00:00:00+00:00"
 
-    failed = service.mark_failed(
+    failed = await service.mark_failed(
         item_id=queued["id"],
         error="PROVIDER_TIMEOUT",
         next_retry_at=explicit_next_retry_at,
@@ -52,9 +52,9 @@ def test_rc70_mark_failed_preserves_explicit_next_retry_at_for_rc69_compatibilit
     assert failed["item"]["next_retry_at"] == explicit_next_retry_at
 
 
-def test_rc70_repeated_failures_follow_backoff_and_then_dead_letter():
+async def test_rc70_repeated_failures_follow_backoff_and_then_dead_letter():
     service = NotificationOutboxService()
-    queued = service.enqueue(
+    queued = await service.enqueue(
         {
             "user_id": "rc70-user",
             "title": "RC70",
@@ -65,13 +65,13 @@ def test_rc70_repeated_failures_follow_backoff_and_then_dead_letter():
 
     last = None
     for retry_count in [1, 2, 3]:
-        service.claim_next()
-        last = service.mark_failed(item_id=queued["id"], error="PROVIDER_TIMEOUT")
+        await service.claim_next(worker_id="worker-rc70")
+        last = await service.mark_failed(item_id=queued["id"], error="PROVIDER_TIMEOUT")
         assert last["item"]["retry_count"] == retry_count
 
         if retry_count < 3:
             # Test zamanı beklemeden ilerleyebilmek için explicit due time ile tekrar kuyruğa alıyoruz.
-            service.mark_failed(
+            await service.mark_failed(
                 item_id=queued["id"],
                 error="PROVIDER_TIMEOUT",
                 next_retry_at="2000-01-01T00:00:00+00:00",

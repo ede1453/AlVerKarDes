@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.core.internal_service_auth import require_internal_service_key
 from app.domains.identity.dependencies import ensure_owner, get_current_user, require_role
 from app.domains.identity.models import UserRole
+from app.domains.notifications.outbox.outbox_repository import (
+    DEFAULT_STALE_LOCK_SECONDS,
+    NotificationOutboxDBRepository,
+)
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
@@ -80,36 +86,55 @@ class WorkerCompletionRequest(BaseModel):
 class BatchSummaryRequest(BaseModel):
     notification_ids:list[str]
 
+class NotificationClaimRequest(BaseModel):
+    worker_id: str
+    stale_lock_seconds: int = DEFAULT_STALE_LOCK_SECONDS
+
 router = APIRouter(prefix="/notification-outbox", tags=["notification-outbox"])
 
+# SCALE-007 Part 1: the message queue itself (enqueue/claim-next/mark-
+# delivered/mark-failed/metrics/etc.) is now Postgres-backed and needs a
+# per-request AsyncSession -- same reasoning as job_queue_router.py's
+# _service(db) helper (SCALE-003). The module-level singleton below is kept
+# for every OTHER concern this god-service still owns in-memory (release
+# lifecycle, worker/instance/scheduler coordination, leader-election
+# delegate, rate-limit/tenant-quota) -- out of scope for this change, see
+# WIKI ADR-017/SCALE-005 for the full inventory.
 _service = NotificationOutboxService()
 
 
+def _queue_service(db: AsyncSession) -> NotificationOutboxService:
+    return NotificationOutboxService(repository=NotificationOutboxDBRepository(db))
+
+
 @router.post("/enqueue")
-def enqueue_notification(
+async def enqueue_notification(
     payload: dict,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.enqueue(payload)
+    return await _queue_service(db).enqueue(payload)
 
 
 @router.post("/enqueue-many")
-def enqueue_many_notifications(
+async def enqueue_many_notifications(
     payload: dict,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.enqueue_many(payload.get("items", []))
+    return await _queue_service(db).enqueue_many(payload.get("items", []))
 
 
 @router.get("/pending")
-def list_pending_notifications(
+async def list_pending_notifications(
     limit: int = 50,
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.list_pending(limit=limit)
+    return await _queue_service(db).list_pending(limit=limit)
 
 @router.get("/readiness/status")
 def get_production_readiness_status(
@@ -205,62 +230,73 @@ def record_release_audit_event(
     )
 
 @router.post("/claim-next")
-def claim_next_notification(
+async def claim_next_notification(
+    payload: NotificationClaimRequest,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.claim_next()
+    return await _queue_service(db).claim_next(
+        worker_id=payload.worker_id,
+        stale_lock_seconds=payload.stale_lock_seconds,
+    )
 
 @router.get("/dead-letters")
-def list_dead_letter_notifications(
+async def list_dead_letter_notifications(
     limit: int = 50,
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.list_dead_letters(limit=limit)
+    return await _queue_service(db).list_dead_letters(limit=limit)
 
 @router.get("/metrics")
-def get_notification_outbox_metrics(
+async def get_notification_outbox_metrics(
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.get_metrics()
+    return await _queue_service(db).get_metrics()
 
 @router.get("/channel-health")
-def get_notification_channel_health(
+async def get_notification_channel_health(
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.get_channel_health()
+    return await _queue_service(db).get_channel_health()
 
 @router.get("/circuit-breaker/status")
-def get_notification_circuit_breaker_status(
+async def get_notification_circuit_breaker_status(
     failure_threshold: int = 3,
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    return _service.get_circuit_breaker_status(
+    return await _queue_service(db).get_circuit_breaker_status(
         failure_threshold=failure_threshold
     )
 
 @router.get("/circuit-breaker/can-deliver")
-def can_deliver_notification_with_circuit_breaker(
+async def can_deliver_notification_with_circuit_breaker(
     failure_threshold: int = 3,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.can_deliver_notifications(
+    return await _queue_service(db).can_deliver_notifications(
         failure_threshold=failure_threshold
     )
 
 @router.get("/digest/{user_id}")
-def get_notification_digest(
+async def get_notification_digest(
     user_id: str,
     limit: int = 20,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, user_id)
-    return _service.build_digest_summary(
+    return await _queue_service(db).build_digest_summary(
         user_id=user_id,
         limit=limit,
     )
@@ -493,56 +529,61 @@ def release_horizontal_scaling_request(
     )
 
 @router.post("/dead-letters/{item_id}/replay")
-def replay_dead_letter_notification(
+async def replay_dead_letter_notification(
     item_id: str,
     payload: dict | None = None,
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     payload = payload or {}
-    return _service.replay_dead_letter(
+    return await _queue_service(db).replay_dead_letter(
         item_id=item_id,
         replay_reason=payload.get("replay_reason", "manual_replay"),
         replayed_by=payload.get("replayed_by", "system"),
     )
 
 @router.post("/{item_id}/mark-delivered")
-def mark_notification_delivered(
+async def mark_notification_delivered(
     item_id: str,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.mark_delivered(item_id)
+    return await _queue_service(db).mark_delivered(item_id)
 
 
 @router.post("/{item_id}/mark-failed")
-def mark_notification_failed(
+async def mark_notification_failed(
     item_id: str,
     payload: dict,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.mark_failed(
+    return await _queue_service(db).mark_failed(
         item_id=item_id,
         error=payload.get("error", "UNKNOWN_ERROR"),
         next_retry_at=payload.get("next_retry_at"),
     )
 
 @router.post("/clear")
-def clear_notification_outbox(
+async def clear_notification_outbox(
+    db: AsyncSession = Depends(get_db),
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    _service.repository.clear()
+    await NotificationOutboxDBRepository(db).clear()
     return {"cleared": True, "metadata": {"outbox_version": "notification_outbox_v1"}}
 
 @router.post("/requeue-due-retries")
-def requeue_due_notification_retries(
+async def requeue_due_notification_retries(
     limit: int = 50,
+    db: AsyncSession = Depends(get_db),
     # AUTH-004 (ADR-006): servis-arası çağrı, X-Internal-Service-Key gerektirir.
     internal_service=Depends(require_internal_service_key),
 ):
-    return _service.requeue_due_retries(limit=limit)
+    return await _queue_service(db).requeue_due_retries(limit=limit)
 
 @router.get("/rate-limit/{user_id}")
 def get_rate_limit(
@@ -600,8 +641,9 @@ def notification_preferences(
     return _service.get_user_notification_preferences(user_id)
 
 @router.post("/snooze")
-def snooze_notification(
+async def snooze_notification(
     payload: dict,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     # AUTH-006 Parça 2 bug fix: snooze_notification() önceden var olan
@@ -609,12 +651,13 @@ def snooze_notification(
     # dönerdi, sahiplik kontrolü mümkün değildi). Artık gerçek kaydı önce
     # buradan çekip sahiplik kontrolü yapıyoruz, tıpkı deal-notifications'ın
     # {id}/delivered ucundaki gibi (bkz. ADR-005).
+    queue_service = _queue_service(db)
     notification_id = payload["notification_id"]
-    item = _service.get_notification(notification_id)
+    item = await queue_service.get_notification(notification_id)
     if item is None:
         raise HTTPException(status_code=404, detail="notification_not_found")
     ensure_owner(current_user, item.user_id)
-    return _service.snooze_notification(
+    return await queue_service.snooze_notification(
         notification_id,
         payload["until"]
     )

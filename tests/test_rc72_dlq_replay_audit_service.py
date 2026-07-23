@@ -1,8 +1,8 @@
 from app.domains.notifications.outbox.outbox_service import NotificationOutboxService
 
 
-def _make_dead_letter(service: NotificationOutboxService) -> dict:
-    queued = service.enqueue(
+async def _make_dead_letter(service: NotificationOutboxService) -> dict:
+    queued = await service.enqueue(
         {
             "user_id": "rc72-user",
             "title": "RC72",
@@ -12,23 +12,23 @@ def _make_dead_letter(service: NotificationOutboxService) -> dict:
     )
 
     for _ in range(3):
-        service.claim_next()
-        failed = service.mark_failed(
+        await service.claim_next(worker_id="worker-rc72")
+        failed = await service.mark_failed(
             item_id=queued["id"],
             error="PROVIDER_TIMEOUT",
             next_retry_at="2000-01-01T00:00:00+00:00",
         )
         if failed["item"]["status"] != "DEAD_LETTER":
-            service.requeue_due_retries()
+            await service.requeue_due_retries()
 
     return queued
 
 
-def test_rc72_replay_dead_letter_adds_audit_metadata():
+async def test_rc72_replay_dead_letter_adds_audit_metadata():
     service = NotificationOutboxService()
-    queued = _make_dead_letter(service)
+    queued = await _make_dead_letter(service)
 
-    replayed = service.replay_dead_letter(
+    replayed = await service.replay_dead_letter(
         queued["id"],
         replay_reason="manual_admin_retry",
         replayed_by="rc72-admin",
@@ -43,20 +43,20 @@ def test_rc72_replay_dead_letter_adds_audit_metadata():
     assert metadata["last_replayed_at"] is not None
 
 
-def test_rc72_replay_dead_letter_increments_replay_count():
+async def test_rc72_replay_dead_letter_increments_replay_count():
     service = NotificationOutboxService()
-    queued = _make_dead_letter(service)
+    queued = await _make_dead_letter(service)
 
-    first = service.replay_dead_letter(
+    first = await service.replay_dead_letter(
         queued["id"],
         replay_reason="first",
         replayed_by="admin",
     )
-    first_item = service.repository.get(queued["id"])
+    first_item = await service.repository.get(queued["id"])
     first_item.status = "DEAD_LETTER"
-    service.repository.update(first_item)
+    await service.repository.update(first_item)
 
-    second = service.replay_dead_letter(
+    second = await service.replay_dead_letter(
         queued["id"],
         replay_reason="second",
         replayed_by="admin",

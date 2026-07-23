@@ -5,7 +5,10 @@ from uuid import uuid4
 
 from app.domains.leader_election.leader_election_store_factory import get_leader_election_store
 from app.domains.notifications.outbox.outbox_models import NotificationOutboxItem
-from app.domains.notifications.outbox.outbox_repository import InMemoryNotificationOutboxRepository
+from app.domains.notifications.outbox.outbox_repository import (
+    DEFAULT_STALE_LOCK_SECONDS,
+    InMemoryNotificationOutboxRepository,
+)
 from app.domains.notifications.outbox.retry_policy import RETRY_POLICY
 
 # SCALE-002: single fixed lock key -- this service manages exactly one
@@ -69,7 +72,7 @@ class NotificationOutboxService:
         # get_leader_election_store() is the SCALE-001 factory pattern.
         self._leader_store = get_leader_election_store()
 
-    def enqueue(self, payload: dict) -> dict:
+    async def enqueue(self, payload: dict) -> dict:
         item = NotificationOutboxItem(
             user_id=payload["user_id"],
             channel=payload.get("channel", "in_app"),
@@ -80,48 +83,60 @@ class NotificationOutboxService:
             idempotency_key=payload.get("idempotency_key") or payload.get("payload", {}).get("idempotency_key"),
         )
 
-        saved = self.repository.add(item)
+        saved = await self.repository.add(item)
         return saved.to_dict()
 
-    def enqueue_many(self, payloads: list[dict]) -> dict:
-        items = [self.enqueue(payload) for payload in payloads]
+    async def enqueue_many(self, payloads: list[dict]) -> dict:
+        items = [await self.enqueue(payload) for payload in payloads]
         return {
             "queued_count": len(items),
             "items": items,
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
-    def list_pending(self, limit: int = 50) -> dict:
-        items = [item.to_dict() for item in self.repository.list_pending(limit=limit)]
+    async def list_pending(self, limit: int = 50) -> dict:
+        items = [item.to_dict() for item in await self.repository.list_pending(limit=limit)]
         return {
             "pending_count": len(items),
             "items": items,
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
-    def claim_next(self) -> dict:
-        pending = self.repository.list_pending(limit=1)
+    async def claim_next(
+        self,
+        *,
+        worker_id: str,
+        stale_lock_seconds: int = DEFAULT_STALE_LOCK_SECONDS,
+    ) -> dict:
+        # SCALE-007 Part 1: atomic cross-worker claim (SELECT FOR UPDATE SKIP
+        # LOCKED on the DB-backed repository) -- replaces the pre-existing
+        # list_pending(limit=1)+mark_processing()+update() sequence, which
+        # was never atomic (a classic read-then-write race) and, once the
+        # repository was in-memory-per-process, was also simply invisible
+        # across workers. An item whose worker crashed mid-delivery without
+        # calling mark-delivered/mark-failed becomes reclaimable once its
+        # lock is older than stale_lock_seconds.
+        item = await self.repository.claim_next(
+            worker_id=worker_id,
+            stale_lock_seconds=stale_lock_seconds,
+        )
 
-        if not pending:
+        if item is None:
             return {
                 "claimed": False,
                 "item": None,
                 "metadata": {"outbox_version": "notification_outbox_v1"},
             }
 
-        item = pending[0]
-        item.mark_processing()
-        saved = self.repository.update(item)
-
         return {
             "claimed": True,
-            "item": saved.to_dict(),
+            "item": item.to_dict(),
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
 
-    def mark_delivered(self, item_id: str) -> dict:
-        item = self.repository.get(item_id)
+    async def mark_delivered(self, item_id: str) -> dict:
+        item = await self.repository.get(item_id)
 
         if item is None:
             return {
@@ -132,7 +147,7 @@ class NotificationOutboxService:
             }
 
         item.mark_delivered()
-        saved = self.repository.update(item)
+        saved = await self.repository.update(item)
 
         return {
             "updated": True,
@@ -141,8 +156,8 @@ class NotificationOutboxService:
         }
 
 
-    def mark_failed(self, item_id: str, error: str, next_retry_at: str | None = None) -> dict:
-        item = self.repository.get(item_id)
+    async def mark_failed(self, item_id: str, error: str, next_retry_at: str | None = None) -> dict:
+        item = await self.repository.get(item_id)
 
         if item is None:
             return {
@@ -166,7 +181,7 @@ class NotificationOutboxService:
                 parsed_next_retry_at = datetime.now(timezone.utc) + retry_delay
 
         item.mark_failed(error=error, next_retry_at=parsed_next_retry_at)
-        saved = self.repository.update(item)
+        saved = await self.repository.update(item)
 
         return {
             "updated": True,
@@ -174,13 +189,13 @@ class NotificationOutboxService:
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
-    def requeue_due_retries(self, limit: int = 50) -> dict:
-        due_items = self.repository.list_due_retries(limit=limit)
+    async def requeue_due_retries(self, limit: int = 50) -> dict:
+        due_items = await self.repository.list_due_retries(limit=limit)
 
         requeued = []
         for item in due_items:
             item.mark_pending_for_retry()
-            saved = self.repository.update(item)
+            saved = await self.repository.update(item)
             requeued.append(saved.to_dict())
 
         return {
@@ -189,8 +204,8 @@ class NotificationOutboxService:
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
-    def list_dead_letters(self, limit: int = 50) -> dict:
-        items = [item.to_dict() for item in self.repository.list_dead_letters(limit=limit)]
+    async def list_dead_letters(self, limit: int = 50) -> dict:
+        items = [item.to_dict() for item in await self.repository.list_dead_letters(limit=limit)]
         return {
             "dead_letter_count": len(items),
             "items": items,
@@ -198,13 +213,13 @@ class NotificationOutboxService:
         }
 
 
-    def replay_dead_letter(
+    async def replay_dead_letter(
         self,
         item_id: str,
         replay_reason: str = "manual_replay",
         replayed_by: str = "system",
     ) -> dict:
-        item = self.repository.get(item_id)
+        item = await self.repository.get(item_id)
 
         if item is None:
             return {
@@ -226,7 +241,7 @@ class NotificationOutboxService:
             replay_reason=replay_reason,
             replayed_by=replayed_by,
         )
-        saved = self.repository.update(item)
+        saved = await self.repository.update(item)
 
         return {
             "replayed": True,
@@ -234,8 +249,8 @@ class NotificationOutboxService:
             "metadata": {"outbox_version": "notification_outbox_v1"},
         }
 
-    def get_metrics(self) -> dict:
-        items = self.repository.list_all()
+    async def get_metrics(self) -> dict:
+        items = await self.repository.list_all()
         total_count = len(items)
 
         pending_count = sum(1 for item in items if item.status == "PENDING")
@@ -271,8 +286,8 @@ class NotificationOutboxService:
             "metadata": {"metrics_version": "notification_metrics_v1"},
         }
 
-    def get_channel_health(self) -> dict:
-        items = self.repository.list_all()
+    async def get_channel_health(self) -> dict:
+        items = await self.repository.list_all()
 
         channels = {}
 
@@ -337,8 +352,8 @@ class NotificationOutboxService:
             },
         }
 
-    def get_circuit_breaker_status(self, failure_threshold: int = 3) -> dict:
-        metrics = self.get_metrics()
+    async def get_circuit_breaker_status(self, failure_threshold: int = 3) -> dict:
+        metrics = await self.get_metrics()
         failure_count = metrics["dead_letter_count"]
 
         status = "OPEN" if failure_count >= failure_threshold else "CLOSED"
@@ -353,8 +368,8 @@ class NotificationOutboxService:
         }
 
 
-    def can_deliver_notifications(self, failure_threshold: int = 3) -> dict:
-        status = self.get_circuit_breaker_status(
+    async def can_deliver_notifications(self, failure_threshold: int = 3) -> dict:
+        status = await self.get_circuit_breaker_status(
             failure_threshold=failure_threshold
         )
 
@@ -447,10 +462,10 @@ class NotificationOutboxService:
             key=lambda x: self._PRIORITY_MAP.get(x,2),
         )
 
-    def build_digest_summary(self, user_id: str, limit: int = 20) -> dict:
+    async def build_digest_summary(self, user_id: str, limit: int = 20) -> dict:
         items = [
             item
-            for item in self.repository.list_all()
+            for item in await self.repository.list_all()
             if item.user_id == user_id and item.status == "PENDING"
         ]
 
@@ -490,15 +505,15 @@ class NotificationOutboxService:
             },
         }
 
-    def get_notification(self, notification_id: str):
-        return self.repository.get(notification_id)
+    async def get_notification(self, notification_id: str):
+        return await self.repository.get(notification_id)
 
-    def snooze_notification(
+    async def snooze_notification(
         self,
         notification_id: str,
         until: str,
     ) -> dict:
-        item = self.repository.get(notification_id)
+        item = await self.repository.get(notification_id)
 
         if item is None:
             return {
@@ -508,7 +523,7 @@ class NotificationOutboxService:
             }
 
         item.snooze(until)
-        saved = self.repository.update(item)
+        saved = await self.repository.update(item)
 
         return {
             "snoozed": True,
