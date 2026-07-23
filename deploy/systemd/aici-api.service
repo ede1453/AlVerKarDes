@@ -7,8 +7,14 @@ Requires=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/opt/aici
-ExecStart=/usr/bin/docker compose -f deploy/docker/docker-compose.production.yml up -d
-ExecStop=/usr/bin/docker compose -f deploy/docker/docker-compose.production.yml down
+# LAUNCH-001: was deploy/docker/docker-compose.production.yml -- that file
+# has never actually been run (HARDEN-008 confirmed only its *existence* is
+# CI-checked), and its own env_file (.env.production) was archived in
+# HARDEN-008. The root docker-compose.prod.yml + .env.prod is the real,
+# proven deploy path (used by every HARDEN-0xx/LAUNCH-0xx container
+# rebuild), and now builds from the hardened deploy/docker/Dockerfile.production.
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml down
 TimeoutStartSec=0
 
 [Install]

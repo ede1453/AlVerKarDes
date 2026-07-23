@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -7,13 +7,29 @@ RUN groupadd --system aici && useradd --system --gid aici aici
 
 WORKDIR /app
 
+# LAUNCH-001: build-essential is required to build some requirements.txt
+# dependencies from source on this base image (matches the root Dockerfile
+# this replaces -- proven working across every HARDEN-0xx container
+# rebuild this project has done).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini .
 COPY scripts ./scripts
+# LAUNCH-001: app/domains/connectors/external_connector_registry.py reads
+# tests/fixtures/*.json at runtime (connector fixture-mode fallback data,
+# e.g. Amazon/MediaMarkt search fixtures used when no real credentials are
+# configured) -- this Dockerfile was missing it, which would have made
+# fixture-mode connectors fail with a file-not-found error had it ever
+# actually been deployed.
+COPY tests/fixtures ./tests/fixtures
 COPY fixtures ./fixtures
 COPY web ./web
 
@@ -22,6 +38,6 @@ USER aici
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

@@ -3,7 +3,11 @@ from pathlib import Path
 
 def test_rc1_deployment_files_exist():
     expected = [
-        "Dockerfile",
+        # LAUNCH-001: the root Dockerfile (unhardened -- root user, single
+        # worker) was archived; docker-compose.prod.yml now builds from the
+        # hardened deploy/docker/Dockerfile.production (non-root, 2 workers,
+        # healthcheck), which sat unused since the project's first commit.
+        "deploy/docker/Dockerfile.production",
         "docker-compose.prod.yml",
         ".env.prod.example",
         "scripts/prod_release_check.ps1",
@@ -16,7 +20,7 @@ def test_rc1_deployment_files_exist():
 
 
 def test_dockerfile_uses_uvicorn():
-    content = Path("Dockerfile").read_text(encoding="utf-8")
+    content = Path("deploy/docker/Dockerfile.production").read_text(encoding="utf-8")
 
     assert "uvicorn" in content
     assert "app.main:app" in content

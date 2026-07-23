@@ -8,7 +8,14 @@ services:
   aici-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      # LAUNCH-001: this used to be the root, unhardened `Dockerfile` (root
+      # user, single worker, no healthcheck) while a hardened one
+      # (non-root, 2 workers, healthcheck) sat unused in deploy/ since the
+      # project's first commit, only ever smoke-tested by CI, never
+      # actually deployed -- the exact "known-good code path that's never
+      # actually wired in" shape as the evaluate_authorization() decoy
+      # (AUTH-000/ADR-002). This is now the canonical Dockerfile.
+      dockerfile: deploy/docker/Dockerfile.production
     container_name: aici-api-prod
     env_file:
       - .env.prod
@@ -29,7 +36,10 @@ services:
     environment:
       POSTGRES_DB: aici
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345678
+      # LAUNCH-001: was a hardcoded placeholder ("12345678") -- must match
+      # .env.prod's DATABASE_URL password exactly, since this is the same
+      # Postgres instance. See enforce_db_password_strength() (app/main.py).
+      POSTGRES_PASSWORD: pFO5QQpn9P4egIjMYSq595Ecv-YTd3uT9j0GHukzMbU
     ports:
       - "5433:5432"
     volumes:

@@ -123,6 +123,34 @@ def enforce_internal_service_key_strength(*, app_env: str, internal_service_key:
         )
 
 
+class WeakDatabasePasswordError(RuntimeError):
+    """Raised at startup when APP_ENV=production but DATABASE_URL's password is weak/placeholder (LAUNCH-001)."""
+
+
+def enforce_db_password_strength(*, app_env: str, database_url: str | None) -> None:
+    # LAUNCH-001: same shape as HARDEN-001/AUTH-004's secret guards --
+    # secret_strength() is reused as-is. Found live: docker-compose.prod.yml
+    # shipped POSTGRES_PASSWORD as the literal placeholder "12345678" (8
+    # chars, single character class), embedded verbatim in .env.prod's
+    # DATABASE_URL -- the exact "weak secret nothing stops from booting"
+    # gap HARDEN-001 closed for JWT_SECRET, just never applied to the DB
+    # password.
+    if app_env.lower() != "production":
+        return
+
+    from urllib.parse import urlparse
+
+    password = urlparse(database_url or "").password
+    result = secret_strength(password)
+    if not result["valid"]:
+        raise WeakDatabasePasswordError(
+            "DATABASE_URL's password is too weak for APP_ENV=production "
+            f"(length={result['length']}, character_classes={result['character_classes']}; "
+            "required: length>=32, character_classes>=3, not a placeholder value). "
+            "Refusing to start. Set a strong database password before deploying."
+        )
+
+
 class InvalidCorsConfigError(RuntimeError):
     """Raised at startup when APP_ENV=production but CORS_ALLOWED_ORIGINS is missing/insecure (HARDEN-002)."""
 
@@ -264,6 +292,10 @@ def create_app() -> FastAPI:
     enforce_internal_service_key_strength(
         app_env=settings.APP_ENV,
         internal_service_key=settings.INTERNAL_SERVICE_KEY,
+    )
+    enforce_db_password_strength(
+        app_env=settings.APP_ENV,
+        database_url=settings.DATABASE_URL,
     )
     enforce_cors_policy(
         app_env=settings.APP_ENV,
