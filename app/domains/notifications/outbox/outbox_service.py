@@ -388,6 +388,16 @@ class NotificationOutboxService:
             },
         }
 
+    # SAHTE/BAĞLANMAMIŞ KOD — SİLİNMEYİ VEYA GERÇEK BAĞLANMAYI BEKLİYOR (bkz. WIKI ADR-017 / SCALE-005).
+    # register_delivery_attempt()/register_tenant_delivery() hiçbir gerçek bildirim teslimat akışından
+    # çağrılmıyor (yalnızca test_rc76_.../test_rc77_... tarafından çağrılıyor). Bu yüzden aşağıdaki
+    # check_rate_limit()/check_tenant_quota() üretimde HER ZAMAN count=0 / allowed=true döner — gerçek
+    # rate limit / kota uygulanmıyor. Buna rağmen tam silinmedi çünkü bu iki metot gerçek, auth korumalı
+    # router endpoint'lerinden çağrılıyor (GET /notification-outbox/rate-limit/{user_id},
+    # GET /notification-outbox/tenant-quota/{tenant_id}) — silmek o endpoint'leri de kaldırmayı gerektirir,
+    # bu da ayrı bir onay gerektiren kapsam. Ayrıca class-level mutable dict olduğu için (instance değil)
+    # tüm NotificationOutboxService örnekleri arasında paylaşılıyor — gerçek trafiğe bağlanırsa bu da
+    # SCALE-0xx serisindeki gibi çoklu-worker'da paylaşılan-durum sorunu yaratır.
     _rate_limit_state = {}
 
     def register_delivery_attempt(self, user_id:str):
@@ -402,6 +412,7 @@ class NotificationOutboxService:
             "remaining": max(0, limit-count),
         }
 
+    # Yukarıdaki notla aynı durum — bkz. yorum.
     _tenant_quota_state = {}
 
     def register_tenant_delivery(self, tenant_id:str):

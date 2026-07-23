@@ -2,6 +2,8 @@ from app.domains.events.event_models import EventRecord
 
 
 class InMemoryEventRepository:
+    backend = "memory"
+
     def __init__(self):
         self._events: list[EventRecord] = []
 

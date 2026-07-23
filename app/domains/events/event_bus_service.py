@@ -33,7 +33,7 @@ class EventBusService:
     def status(self):
         return {
             "enabled": True,
-            "backend": "memory",
+            "backend": getattr(self.repository, "backend", "memory"),
             "event_count": self.repository.count(),
             "event_bus_version": "event_bus_v1",
             "repository_lifecycle": "singleton",
