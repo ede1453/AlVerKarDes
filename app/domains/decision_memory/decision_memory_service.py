@@ -41,3 +41,7 @@ class DecisionMemoryService:
 
         updated = await self.repository.update_outcome(decision_id, outcome)
         return serialize_decision_memory(updated)
+
+    async def get_user_history_summary(self, user_id: str, limit: int = 5) -> dict:
+        records = await self.repository.list_recent_by_user(user_id, limit=limit)
+        return self.engine.summarize(records)

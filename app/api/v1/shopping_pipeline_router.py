@@ -34,4 +34,9 @@ async def run_shopping_pipeline(
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await _service.run(payload.model_dump(), db)
+    # VISION-000 (ADR-018): decision_memory writes are keyed to the token-
+    # verified current_user.id, never to the request body's `user_id` field
+    # (which is caller-supplied and not cross-checked against current_user
+    # elsewhere in this endpoint) -- avoids attributing a stored decision to
+    # a spoofed/arbitrary user_id.
+    return await _service.run(payload.model_dump(), db, authenticated_user_id=str(current_user.id))

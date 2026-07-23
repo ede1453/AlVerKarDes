@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.decision_memory.db_models import DecisionMemoryModel
@@ -114,3 +115,23 @@ class DecisionMemoryRepository:
         await self.db.commit()
         await self.db.refresh(row)
         return _to_record(row)
+
+    async def list_recent_by_user(self, user_id: str, limit: int = 5) -> list[DecisionMemoryRecord]:
+        """VISION-000: the read side of "AI Shopping Memory" -- a plain
+        recency query, no semantic search/embeddings (see ADR-018, that's
+        deliberately out of scope for this slice). Uses the `user_id` index
+        (migration 0017_decision_memory_owner) added when AUTH-006 Part 1
+        gave decision_memory an owner column, so this is not a new index
+        need -- just its first real consumer."""
+        try:
+            key = UUID(user_id)
+        except ValueError:
+            return []
+
+        result = await self.db.execute(
+            select(DecisionMemoryModel)
+            .where(DecisionMemoryModel.user_id == key)
+            .order_by(DecisionMemoryModel.generated_at.desc())
+            .limit(limit)
+        )
+        return [_to_record(row) for row in result.scalars().all()]

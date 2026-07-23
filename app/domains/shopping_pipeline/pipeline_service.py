@@ -1,5 +1,7 @@
 from app.domains.ai_explanation.explanation_service import AIExplanationService
 from app.domains.deal_detection.deal_detection_service import DealDetectionService
+from app.domains.decision_memory.decision_memory_repository import DecisionMemoryRepository
+from app.domains.decision_memory.decision_memory_service import DecisionMemoryService
 from app.domains.discount_intelligence.discount_service import DiscountIntelligenceService
 from app.domains.events.event_bus_service import EventBusService
 from app.domains.market.service import MarketService
@@ -40,7 +42,14 @@ class ShoppingPipelineService:
         self.notification_service = notification_service or NotificationService()
         self.event_bus_service = event_bus_service or EventBusService()
 
-    async def run(self, payload: dict, db):
+    async def run(self, payload: dict, db, authenticated_user_id: str | None = None):
+        # VISION-000 (ADR-018): `authenticated_user_id` is deliberately a
+        # separate, optional parameter from payload["user_id"] -- it must
+        # come from a token-verified caller (see shopping_pipeline_router.py),
+        # never from the request body, which is why it defaults to None here
+        # (any direct/test caller that doesn't pass it gets decision_memory
+        # writes silently skipped, not a spoofable write).
+        pipeline_id = create_pipeline_id()
         user_id = payload["user_id"]
         query = payload["query"]
         offers = payload.get("offers") or await self._real_offers(db, query)
@@ -162,17 +171,44 @@ class ShoppingPipelineService:
                 }
             )
 
+            top_final_decision = "BUY_NOW" if top.get("score", 0) >= 70 else "CONSIDER"
+
             explanation = self.explanation_service.explain(
                 {
                     "language": payload.get("language", "en"),
                     "tone": payload.get("tone", "clear"),
-                    "agent_decision": {"decision": "BUY_NOW" if top.get("score", 0) >= 70 else "CONSIDER"},
+                    "agent_decision": {"decision": top_final_decision},
                     "deal_detection": deal_detection,
                     "discount_intelligence": discount_intelligence,
                     "smart_alert": smart_alert,
                     "price_prediction": price_prediction,
                 }
             )
+
+            # VISION-000 (ADR-018): decision_memory read+write, only for a
+            # real token-verified user (authenticated_user_id), never for
+            # payload["user_id"] alone -- see run()'s docstring-comment above.
+            # Read happens BEFORE this run's own decision is written, so the
+            # summary reflects only *past* decisions, not this one.
+            if authenticated_user_id:
+                decision_memory_service = DecisionMemoryService(repository=DecisionMemoryRepository(db))
+                explanation["user_decision_history"] = await decision_memory_service.get_user_history_summary(
+                    authenticated_user_id
+                )
+                await decision_memory_service.store(
+                    {
+                        "user_id": authenticated_user_id,
+                        "product_id": top.get("product_key"),
+                        "final_decision": top_final_decision,
+                        "confidence": top.get("score", 0),
+                        "deal_score": deal_detection.get("deal_score") if deal_detection else None,
+                        "recommendation": top.get("recommendation_type"),
+                        "reason_codes": deal_detection.get("reasons", []) if deal_detection else [],
+                        "decision_context": {"pipeline_id": pipeline_id, "query": query},
+                    }
+                )
+            else:
+                explanation["user_decision_history"] = None
 
             if payload.get("deliver_notification", False) and smart_alert and smart_alert.get("should_alert"):
                 notification = self.notification_service.deliver_from_smart_alert(
@@ -184,7 +220,7 @@ class ShoppingPipelineService:
                 )
 
         result = ShoppingPipelineResult(
-            pipeline_id=create_pipeline_id(),
+            pipeline_id=pipeline_id,
             user_id=user_id,
             query=query,
             status="COMPLETED" if top else "NO_RECOMMENDATION",

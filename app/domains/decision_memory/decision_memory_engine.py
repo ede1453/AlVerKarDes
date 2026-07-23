@@ -23,3 +23,17 @@ class DecisionMemoryEngine:
                 decision_context=payload.get("decision_context", {}),
             )
         )
+
+    def summarize(self, records: list) -> dict:
+        """VISION-000: intentionally just counting, not summarization in the
+        LLM sense -- no embeddings, no semantic clustering (see ADR-018).
+        `records` is expected most-recent-first (repository's ORDER BY)."""
+        counts_by_decision: dict[str, int] = {}
+        for record in records:
+            counts_by_decision[record.final_decision] = counts_by_decision.get(record.final_decision, 0) + 1
+
+        return {
+            "total": len(records),
+            "counts_by_decision": counts_by_decision,
+            "most_recent_decision": records[0].final_decision if records else None,
+        }
