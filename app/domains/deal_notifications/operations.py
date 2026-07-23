@@ -6,6 +6,14 @@ from hashlib import sha256
 from typing import Any
 from uuid import uuid4
 
+from app.domains.deal_notifications.idempotency_store_factory import get_idempotency_store
+
+# SCALE-007 Part 2: a duplicate-send window needs to outlive any single
+# request but not accumulate forever -- 24h comfortably covers any
+# realistic caller-defined window_key granularity (hourly/daily buckets)
+# while keeping Redis memory bounded via TTL expiry.
+DEFAULT_IDEMPOTENCY_TTL_SECONDS = 86400
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -16,9 +24,12 @@ def now_iso() -> str:
 
 
 class DealNotificationOperationsService:
-    def __init__(self) -> None:
+    def __init__(self, idempotency_store=None) -> None:
         self._attempts: dict[str, list[dict[str, Any]]] = {}
-        self._idempotency: dict[str, str] = {}
+        # SCALE-007 Part 2: idempotency reservations moved to an env-driven
+        # store (Redis-backed in prod, in-memory fallback for tests/local)
+        # -- get_idempotency_store() is the SCALE-001 factory pattern.
+        self._idempotency_store = idempotency_store or get_idempotency_store()
         self._escalations: dict[str, dict[str, Any]] = {}
         self._digests: dict[str, dict[str, Any]] = {}
         self._engagement_events: list[dict[str, Any]] = []
@@ -97,6 +108,7 @@ class DealNotificationOperationsService:
         deal_id: str,
         channel: str,
         window_key: str,
+        ttl_seconds: int = DEFAULT_IDEMPOTENCY_TTL_SECONDS,
     ) -> dict[str, Any]:
         raw = "|".join(
             [
@@ -111,7 +123,15 @@ class DealNotificationOperationsService:
             raw.encode("utf-8")
         ).hexdigest()
 
-        existing = self._idempotency.get(key)
+        # SCALE-007 Part 2: candidate notification_id generated BEFORE the
+        # atomic reserve attempt, so the store's SET-NX-style check-and-set
+        # is a single round-trip -- no separate "check" then "write" step
+        # for a second caller to race in between (the exact TOCTOU the old
+        # dict.get()-then-dict[key]= sequence had, reachable even within one
+        # process since this endpoint is sync and FastAPI runs it in a
+        # threadpool).
+        notification_id = str(uuid4())
+        existing = self._idempotency_store.reserve(key, notification_id, ttl_seconds)
 
         if existing is not None:
             return {
@@ -120,9 +140,6 @@ class DealNotificationOperationsService:
                 "idempotency_key": key,
                 "notification_id": existing,
             }
-
-        notification_id = str(uuid4())
-        self._idempotency[key] = notification_id
 
         return {
             "reserved": True,
@@ -389,5 +406,9 @@ class DealNotificationOperationsService:
         }
 
     def clear(self) -> dict[str, Any]:
-        self.__init__()
+        self._attempts = {}
+        self._idempotency_store.reset()
+        self._escalations = {}
+        self._digests = {}
+        self._engagement_events = []
         return {"cleared": True}
