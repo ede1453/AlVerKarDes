@@ -132,11 +132,27 @@
     "tablePrice": "Price",
     "tableDecision": "Decision",
     "tableScore": "Score",
+    "tableMessage": "Why",
+    "tableReasons": "Match reasons",
     "decision": {
       "BUY": "Buy",
       "WATCH": "Watch",
       "SKIP": "Skip",
       "unknown": "Unknown"
+    },
+    "message": {
+      "BUY": "This looks like a strong deal compared with recent price history.",
+      "WATCH": "This is a reasonable offer, but watching for a better price may be worthwhile.",
+      "WAIT": "This does not look like a strong deal right now.",
+      "SKIP": "This does not look like a strong deal right now.",
+      "unknown": "No assessment is available for this offer yet."
+    },
+    "reasons": {
+      "PREFERRED_CATEGORY": "Matches a category you prefer",
+      "PREFERRED_BRAND": "Matches a brand you prefer",
+      "BLOCKED_SOURCE": "From a store you have blocked",
+      "ABOVE_MAXIMUM_PRICE": "Above your maximum price",
+      "DISCOUNT_THRESHOLD_MET": "Meets your minimum discount"
     }
   },
   "notificationPreferences": {

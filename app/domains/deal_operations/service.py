@@ -5,9 +5,13 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.domains.ai_explanation.recommendation_explanation_service import (
+    RecommendationExplanationService,
+)
 from app.domains.deal_intelligence.service import (
     DealIntelligenceService,
 )
+from app.domains.watchlist.watchlist_matcher import WatchlistMatcher
 
 
 def now_iso() -> str:
@@ -164,76 +168,6 @@ class OpportunityRepository:
         return deepcopy(items)
 
 
-class RecommendationExplanationService:
-    def explain(
-        self,
-        *,
-        recommendation: dict[str, Any],
-    ) -> dict[str, Any]:
-        decision = recommendation.get(
-            "decision",
-            "INSUFFICIENT_DATA",
-        )
-        evidence = recommendation.get(
-            "evidence",
-            {},
-        )
-
-        reasons: list[str] = []
-
-        discount = evidence.get(
-            "observed_discount_pct"
-        )
-        if discount is not None:
-            reasons.append(
-                f"OBSERVED_DISCOUNT_{discount}"
-            )
-
-        source_confidence = evidence.get(
-            "source_confidence"
-        )
-        if source_confidence is not None:
-            reasons.append(
-                f"SOURCE_CONFIDENCE_{source_confidence}"
-            )
-
-        freshness = evidence.get(
-            "freshness_status"
-        )
-        if freshness:
-            reasons.append(
-                f"FRESHNESS_{freshness}"
-            )
-
-        if evidence.get(
-            "anomaly_detected",
-            False,
-        ):
-            reasons.append(
-                "PRICE_ANOMALY_DETECTED"
-            )
-
-        summaries = {
-            "BUY": "Fiyat, kaynak güveni ve veri tazeliği satın alma kararını destekliyor.",
-            "WAIT": "Fırsat mevcut ancak daha güçlü doğrulama veya daha iyi fiyat beklenmeli.",
-            "DO_NOT_BUY": "Risk veya yanıltıcı fiyat sinyali nedeniyle satın alma önerilmiyor.",
-            "INSUFFICIENT_DATA": "Güvenilir karar için yeterli veri bulunmuyor.",
-        }
-
-        return {
-            "decision": decision,
-            "summary": summaries.get(
-                decision,
-                "Karar açıklaması oluşturuldu.",
-            ),
-            "reasons": reasons,
-            "evidence": deepcopy(evidence),
-            "metadata": {
-                "explanation_version": "recommendation_explanation_v1"
-            },
-        }
-
-
 class DealAlertBridge:
     def build_alert(
         self,
@@ -297,83 +231,6 @@ class DealAlertBridge:
             ],
             "metadata": {
                 "bridge_version": "deal_alert_bridge_v1"
-            },
-        }
-
-
-class WatchlistMatcher:
-    def match(
-        self,
-        *,
-        watch_items: list[dict[str, Any]],
-        opportunity: dict[str, Any],
-        recommendation: dict[str, Any],
-    ) -> dict[str, Any]:
-        matches = []
-
-        product_key = opportunity.get(
-            "canonical_product_key"
-        )
-        effective_price = float(
-            opportunity.get(
-                "effective_price",
-                opportunity.get(
-                    "price",
-                    0,
-                ),
-            )
-        )
-        confidence = float(
-            recommendation.get(
-                "confidence",
-                0,
-            )
-        )
-
-        for item in watch_items:
-            if not item.get(
-                "active",
-                True,
-            ):
-                continue
-
-            if item["product_key"] != product_key:
-                continue
-
-            target_price = item.get(
-                "target_price"
-            )
-
-            if (
-                target_price is not None
-                and effective_price
-                > float(target_price)
-            ):
-                continue
-
-            if confidence < float(
-                item.get(
-                    "minimum_confidence",
-                    0,
-                )
-            ):
-                continue
-
-            matches.append(
-                {
-                    "watch_id": item["watch_id"],
-                    "user_id": item["user_id"],
-                    "product_key": product_key,
-                    "effective_price": effective_price,
-                    "confidence": confidence,
-                }
-            )
-
-        return {
-            "match_count": len(matches),
-            "matches": matches,
-            "metadata": {
-                "matcher_version": "watchlist_matcher_v1"
             },
         }
 

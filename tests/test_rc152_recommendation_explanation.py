@@ -1,4 +1,6 @@
-from app.domains.deal_operations.service import RecommendationExplanationService
+from app.domains.ai_explanation.recommendation_explanation_service import (
+    RecommendationExplanationService,
+)
 
 
 def test_rc152_recommendation_explanation():

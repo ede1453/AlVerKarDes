@@ -2,7 +2,7 @@ import pytest
 
 from app.domains.connectors.manual_connector import ManualConnector
 from app.domains.connectors.sdk import ConnectorProductResult
-from app.domains.evidence.schemas import EvidenceBundle, EvidenceItem
+from app.domains.ai_explanation.evidence_schemas import EvidenceBundle, EvidenceItem
 from app.domains.products.canonical_service import CanonicalProductService
 
 

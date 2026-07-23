@@ -1,7 +1,5 @@
-from app.domains.deal_operations.service import (
-    DealAlertBridge,
-    WatchlistMatcher,
-)
+from app.domains.deal_operations.service import DealAlertBridge
+from app.domains.watchlist.watchlist_matcher import WatchlistMatcher
 
 
 def test_rc153_alert_bridge():

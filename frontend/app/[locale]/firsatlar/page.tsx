@@ -9,6 +9,24 @@ interface DealsPageProps {
 
 type FeedResult = { kind: "ok"; data: DealFeedResponse } | { kind: "error" };
 
+// Mirrors the codes UserPreferenceScorer (app/domains/deal_feed/service.py)
+// actually emits into personalization_reasons -- a fixed, known set, not
+// arbitrary strings, so this narrows for next-intl's compile-time key
+// checking. Any future backend code not in this list falls back to the raw
+// code (see reasonLabel below) instead of a type error.
+const KNOWN_REASON_CODES = [
+  "PREFERRED_CATEGORY",
+  "PREFERRED_BRAND",
+  "BLOCKED_SOURCE",
+  "ABOVE_MAXIMUM_PRICE",
+  "DISCOUNT_THRESHOLD_MET",
+] as const;
+type KnownReasonCode = (typeof KNOWN_REASON_CODES)[number];
+
+function isKnownReasonCode(code: string): code is KnownReasonCode {
+  return (KNOWN_REASON_CODES as readonly string[]).includes(code);
+}
+
 async function fetchDealFeed(): Promise<FeedResult> {
   let res: Response;
   try {
@@ -51,6 +69,8 @@ export default async function DealsPage({ params }: DealsPageProps) {
               <th>{t("tablePrice")}</th>
               <th>{t("tableDecision")}</th>
               <th>{t("tableScore")}</th>
+              <th>{t("tableMessage")}</th>
+              <th>{t("tableReasons")}</th>
             </tr>
           </thead>
           <tbody>
@@ -59,6 +79,12 @@ export default async function DealsPage({ params }: DealsPageProps) {
                 item.deal_decision === "BUY" || item.deal_decision === "WATCH" || item.deal_decision === "SKIP"
                   ? item.deal_decision
                   : null;
+              // The backend's decision engine (app/domains/deals/deal_score_engine.py)
+              // only ever produces BUY/WATCH/WAIT, so "message" is keyed on the same
+              // decisionKey logic as the badge above (falls back to "unknown" for the
+              // same untranslatable values, e.g. WAIT -- a pre-existing mismatch with
+              // this page's own BUY/WATCH/SKIP check, not something this i18n pass fixes).
+              const messageKey = decisionKey ?? "unknown";
               return (
                 <tr key={item.offer_id}>
                   <td>
@@ -78,6 +104,16 @@ export default async function DealsPage({ params }: DealsPageProps) {
                     )}
                   </td>
                   <td>{item.personalized_score}</td>
+                  <td>{t(`message.${messageKey}`)}</td>
+                  <td>
+                    {item.personalization_reasons.length === 0
+                      ? null
+                      : item.personalization_reasons.map((reasonCode) => (
+                          <span key={reasonCode} className="badge badge-reason">
+                            {isKnownReasonCode(reasonCode) ? t(`reasons.${reasonCode}`) : reasonCode}
+                          </span>
+                        ))}
+                  </td>
                 </tr>
               );
             })}
