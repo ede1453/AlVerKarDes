@@ -9,4 +9,6 @@ def serialize_provider_schedule(schedule):
         "created_at": schedule.created_at.isoformat(),
         "last_run_at": None if schedule.last_run_at is None else schedule.last_run_at.isoformat(),
         "last_result": schedule.last_result,
+        "locked_by": schedule.locked_by,
+        "locked_at": None if schedule.locked_at is None else schedule.locked_at.isoformat(),
     }

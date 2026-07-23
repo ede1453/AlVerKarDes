@@ -6,3 +6,4 @@ from app.domains.deal_notifications.db_models import NotificationPreferenceModel
 from app.domains.watchlist.db_models import WatchlistItemModel  # noqa: F401
 from app.domains.billing.db_models import SubscriptionModel  # noqa: F401
 from app.domains.jobs.db_models import JobModel  # noqa: F401
+from app.domains.provider_scheduler.db_models import ProviderScheduleModel  # noqa: F401

@@ -22,6 +22,8 @@ class ProviderScheduleRecord:
     created_at: datetime
     last_run_at: datetime | None = None
     last_result: dict | None = None
+    locked_by: str | None = None
+    locked_at: datetime | None = None
 
 
 def create_provider_schedule(data: ProviderScheduleCreate) -> ProviderScheduleRecord:
