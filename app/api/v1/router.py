@@ -47,9 +47,6 @@ from app.api.v1.marketplace_expansion_router import router as marketplace_expans
 from app.api.v1.notification_outbox_router import router as notification_outbox_router
 from app.api.v1.notifications_router import router as notifications_router
 from app.api.v1.observability_router import router as observability_router
-from app.api.v1.personalization_router import router as personalization_router
-from app.api.v1.personalized_intelligence_router import router as personalized_intelligence_router
-from app.api.v1.price_history_router import router as price_history_router
 from app.api.v1.price_prediction_router import router as price_prediction_router
 from app.api.v1.price_quality_router import router as price_quality_router
 from app.api.v1.product_canonicalization_router import router as product_canonicalization_router
@@ -117,7 +114,6 @@ api_router.include_router(consumer_intelligence_router)
 api_router.include_router(decision_context_router)
 api_router.include_router(explanation_router)
 api_router.include_router(decision_memory_router)
-api_router.include_router(personalized_intelligence_router)
 api_router.include_router(feedback_learning_router)
 api_router.include_router(trust_intelligence_router)
 api_router.include_router(llm_explanation_adapter_router)
@@ -136,8 +132,6 @@ api_router.include_router(provider_scheduler_router)
 api_router.include_router(marketplace_aggregation_router)
 api_router.include_router(unified_search_router)
 api_router.include_router(product_matching_router)
-api_router.include_router(price_history_router)
-api_router.include_router(personalization_router)
 api_router.include_router(deal_detection_router)
 api_router.include_router(price_prediction_router)
 api_router.include_router(smart_alerts_router)

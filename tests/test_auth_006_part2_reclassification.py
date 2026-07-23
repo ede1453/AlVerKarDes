@@ -148,7 +148,8 @@ def test_notification_outbox_snooze_cross_user_is_forbidden_and_owner_succeeds()
     [
         "/api/v1/deal-notifications/clear",
         "/api/v1/watchlist/clear",
-        "/api/v1/personalization/clear",
+        # VISION-003: personalization/clear removed here -- the personalization
+        # domain was archived (no production caller, see ADR-019 VISION-003).
         "/api/v1/user-activity/clear",
         "/api/v1/user-profiles/clear",
     ],

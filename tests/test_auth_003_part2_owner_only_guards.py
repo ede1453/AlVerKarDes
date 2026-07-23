@@ -62,32 +62,6 @@ def test_watchlist_item_cross_user_access_is_forbidden():
     assert own_get.status_code == 200, own_get.text
 
 
-def test_personalization_profile_cross_user_access_is_forbidden():
-    with TestClient(app) as client:
-        user_a, headers_a = _register_and_login(client)
-        _, headers_b = _register_and_login(client)
-
-        upsert = client.post(
-            "/api/v1/personalization/profiles",
-            headers=headers_a,
-            json={"user_id": user_a, "risk_tolerance": "HIGH"},
-        )
-        assert upsert.status_code == 200, upsert.text
-
-        cross_user_get = client.get(f"/api/v1/personalization/profiles/{user_a}", headers=headers_b)
-        cross_user_write = client.post(
-            "/api/v1/personalization/profiles",
-            headers=headers_b,
-            json={"user_id": user_a, "risk_tolerance": "LOW"},
-        )
-        own_get = client.get(f"/api/v1/personalization/profiles/{user_a}", headers=headers_a)
-
-    assert cross_user_get.status_code == 403, cross_user_get.text
-    assert cross_user_write.status_code == 403, cross_user_write.text
-    assert own_get.status_code == 200, own_get.text
-    assert own_get.json()["risk_tolerance"] == "HIGH"
-
-
 def test_consumer_trust_saved_search_cross_user_access_is_forbidden():
     with TestClient(app) as client:
         user_a, headers_a = _register_and_login(client)
