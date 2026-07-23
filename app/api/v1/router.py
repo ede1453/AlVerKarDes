@@ -1,9 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.ai_decision_pipeline_router import router as ai_decision_pipeline_router
 from app.api.v1.ai_explanation_router import router as ai_explanation_router
-from app.api.v1.ai_shopping_agent_router import router as ai_shopping_agent_router
-from app.api.v1.ai_shopping_assistant_router import router as ai_shopping_assistant_router
 from app.api.v1.amazon_connector_router import router as amazon_connector_router
 from app.api.v1.billing_router import router as billing_router
 from app.api.v1.cache_router import router as cache_router
@@ -77,8 +74,6 @@ from app.api.v1.user_profiles_router import router as user_profiles_router
 from app.api.v1.user_value_router import router as user_value_router
 from app.api.v1.watchlist_router import router as watchlist_router
 from app.domains.alerts.router import router as alerts_router
-from app.domains.application.grouped_search_recommend_router import router as grouped_search_recommend_router
-from app.domains.application.search_recommend_router import router as search_recommend_router
 from app.domains.connectors.external_router import router as external_connectors_router
 from app.domains.connectors.ingestion_router import router as connector_ingestion_router
 from app.domains.connectors.router import router as consumer_connectors_router
@@ -106,8 +101,6 @@ api_router.include_router(connectors_router, prefix="/market", tags=["connectors
 api_router.include_router(admin_import_router, tags=["admin-import"])
 api_router.include_router(consumer_connectors_router)
 api_router.include_router(connector_ingestion_router)
-api_router.include_router(search_recommend_router)
-api_router.include_router(grouped_search_recommend_router)
 api_router.include_router(product_merge_router)
 api_router.include_router(post_merge_router)
 api_router.include_router(integrity_router)
@@ -121,14 +114,12 @@ api_router.include_router(deals_router)
 api_router.include_router(recommendation_router)
 api_router.include_router(recommendation_intelligence_router)
 api_router.include_router(consumer_intelligence_router)
-api_router.include_router(ai_decision_pipeline_router)
 api_router.include_router(decision_context_router)
 api_router.include_router(explanation_router)
 api_router.include_router(decision_memory_router)
 api_router.include_router(personalized_intelligence_router)
 api_router.include_router(feedback_learning_router)
 api_router.include_router(trust_intelligence_router)
-api_router.include_router(ai_shopping_assistant_router)
 api_router.include_router(llm_explanation_adapter_router)
 api_router.include_router(llm_provider_gateway_router)
 api_router.include_router(llm_audit_trace_router)
@@ -147,7 +138,6 @@ api_router.include_router(unified_search_router)
 api_router.include_router(product_matching_router)
 api_router.include_router(price_history_router)
 api_router.include_router(personalization_router)
-api_router.include_router(ai_shopping_agent_router)
 api_router.include_router(deal_detection_router)
 api_router.include_router(price_prediction_router)
 api_router.include_router(smart_alerts_router)

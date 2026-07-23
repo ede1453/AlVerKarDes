@@ -43,27 +43,11 @@ def _fresh_access_token(client: TestClient) -> str:
 
 
 AUTHENTICATED_SAMPLES = [
-    (
-        "POST",
-        "/api/v1/ai-decision-pipeline/run",
-        {
-            "deal_score": 80,
-            "authenticity_score": 80,
-            "recommendation": "BUY",
-            "recommendation_confidence": 80,
-        },
-    ),
+    # VISION-002 (ADR-019): ai-decision-pipeline, ai-shopping-agent, and
+    # ai-shopping-assistant samples removed here -- all three routers were
+    # archived (no production caller; shopping_pipeline is the canonical
+    # decision path), so there is no longer an endpoint to sample.
     ("POST", "/api/v1/ai-explanation/explain", {}),
-    (
-        "POST",
-        "/api/v1/ai-shopping-agent/run",
-        {"query": "laptop"},
-    ),
-    (
-        "POST",
-        "/api/v1/ai-shopping-assistant/advise",
-        {},
-    ),
     ("POST", "/api/v1/decision-context/build", {}),
     (
         "POST",

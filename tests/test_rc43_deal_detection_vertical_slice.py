@@ -4,38 +4,36 @@ from app.main import app
 from tests.auth_test_helpers import auth_headers
 
 
-def test_deal_detection_vertical_slice_from_ai_shopping_agent():
+def test_deal_detection_vertical_slice_from_realistic_agent_style_input():
+    # VISION-002 (ADR-019): this used to call ai_shopping_agent's /run to
+    # build a realistic price_history/top_offer/personalization payload
+    # before feeding it to deal_detection -- ai_shopping_agent was archived
+    # (no production caller), but its actual real output shape for this
+    # exact scenario was captured before archiving and is reproduced
+    # directly here, so deal_detection's own vertical slice coverage (same
+    # scenario, same expected deal_score) is unchanged.
     with TestClient(app) as client:
         headers = auth_headers(client)
-        agent_response = client.post(
-            "/api/v1/ai-shopping-agent/run",
-            headers=headers,
-            json={
-                "query": "MacBook Air",
-                "user_id": "user-1",
-                "profile": {
-                    "preferred_marketplaces": ["saturn"],
-                    "preferred_brands": ["Apple"],
-                    "max_price": "1000.00",
-                },
-                "offers": [
-                    {"id": "1", "marketplace": "amazon", "seller": "Amazon", "product_name": "Apple MacBook Air M3", "price": "999.00"},
-                    {"id": "2", "marketplace": "saturn", "seller": "Saturn", "product_name": "Apple MacBook Air M3", "price": "949.00"},
-                ],
-            },
-        )
-
-        assert agent_response.status_code == 200
-        agent = agent_response.json()
 
         deal_response = client.post(
             "/api/v1/deal-detection/detect",
             headers=headers,
             json={
-                "product_key": agent["price_history"]["product_key"],
-                "offer": agent["top_offer"],
-                "price_history": agent["price_history"],
-                "personalization": agent["personalization"],
+                "product_key": "apple::macbook-air::m3::de",
+                "offer": {"marketplace": "saturn", "price": "949.00"},
+                "price_history": {
+                    "product_key": "apple::macbook-air::m3::de",
+                    "currency": "EUR",
+                    "point_count": 2,
+                    "min_price": "949.00",
+                    "max_price": "999.00",
+                    "average_price": "974.00",
+                    "latest_price": "999.00",
+                    "trend": "UP",
+                },
+                "personalization": {
+                    "top_offer": {"personalization_score": 95},
+                },
             },
         )
 

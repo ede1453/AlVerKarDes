@@ -15,7 +15,6 @@ def test_critical_routes_exist_in_openapi():
     expected = [
         "/health",
         "/api/v1/connectors/search",
-        "/api/v1/application/grouped-search-recommend",
         "/api/v1/products/merge/apply",
         "/api/v1/products/merge/verify",
         "/api/v1/products/cleanup/orphans",
@@ -27,15 +26,6 @@ def test_critical_routes_exist_in_openapi():
     missing = [path for path in expected if path not in paths]
 
     assert missing == []
-
-
-def test_grouped_search_recommend_contract():
-    schema = _paths()["/api/v1/application/grouped-search-recommend"]
-
-    assert "post" in schema
-    assert "requestBody" in schema["post"]
-    assert "responses" in schema["post"]
-    assert "200" in schema["post"]["responses"]
 
 
 def test_product_merge_apply_contract():
