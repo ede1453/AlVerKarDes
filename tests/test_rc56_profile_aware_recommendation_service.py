@@ -2,11 +2,11 @@ from app.domains.events.event_repository_factory import reset_event_repository
 from app.domains.profile_aware_recommendations.profile_aware_service import ProfileAwareRecommendationService
 
 
-def test_profile_aware_service_generates_recommendations_and_event():
+async def test_profile_aware_service_generates_recommendations_and_event():
     reset_event_repository()
     service = ProfileAwareRecommendationService()
 
-    result = service.recommend(
+    result = await service.recommend(
         {
             "user_id": "user-1",
             "query": "MacBook Air",

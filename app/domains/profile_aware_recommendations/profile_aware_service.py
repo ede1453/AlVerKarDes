@@ -3,6 +3,7 @@ from app.domains.profile_aware_recommendations.profile_aware_engine import (
     ProfileAwareRecommendationEngine,
 )
 from app.domains.recommendations.recommendation_service import RecommendationService
+from app.domains.user_profiles.user_profile_repository import UserProfileDBRepository
 from app.domains.user_profiles.user_profile_service import UserProfileService
 
 
@@ -16,12 +17,24 @@ class ProfileAwareRecommendationService:
     ):
         self.engine = engine or ProfileAwareRecommendationEngine()
         self.recommendation_service = recommendation_service or RecommendationService()
-        self.user_profile_service = user_profile_service or UserProfileService()
+        # SCALE-008: user_profile_service isn't defaulted here (unlike the
+        # others) because a DB-backed one needs a request-scoped `db` --
+        # see recommend()'s `db` parameter, mirroring pipeline_service.py's
+        # _real_offers(db, ...)/_real_price_history(db, ...) convention of
+        # threading `db` through as a method argument rather than the
+        # constructor. Explicitly injecting one here (e.g. an in-memory
+        # test double) still works and takes priority over `db`.
+        self.user_profile_service = user_profile_service
         self.event_bus_service = event_bus_service or EventBusService()
 
-    def recommend(self, payload: dict):
+    async def recommend(self, payload: dict, db=None):
         user_id = payload["user_id"]
-        profile_context = payload.get("profile_context") or self.user_profile_service.recommendation_context(user_id)
+        profile_context = payload.get("profile_context")
+        if profile_context is None:
+            user_profile_service = self.user_profile_service or UserProfileService(
+                repository=UserProfileDBRepository(db) if db is not None else None
+            )
+            profile_context = await user_profile_service.recommendation_context(user_id)
 
         base = self.recommendation_service.recommend(
             {

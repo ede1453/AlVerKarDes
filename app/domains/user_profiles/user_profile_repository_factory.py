@@ -7,5 +7,5 @@ def get_user_profile_repository():
     return _default_user_profile_repository
 
 
-def reset_user_profile_repository():
-    _default_user_profile_repository.clear()
+async def reset_user_profile_repository():
+    await _default_user_profile_repository.clear()

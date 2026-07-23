@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.domains.identity.dependencies import ensure_owner, get_current_user
 from app.domains.profile_aware_recommendations.profile_aware_service import (
     ProfileAwareRecommendationService,
@@ -26,7 +28,8 @@ _service = ProfileAwareRecommendationService()
 @router.post("/recommend")
 async def recommend_with_profile(
     payload: ProfileAwareRecommendationRequest,
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     ensure_owner(current_user, payload.user_id)
-    return _service.recommend(payload.model_dump())
+    return await _service.recommend(payload.model_dump(), db)

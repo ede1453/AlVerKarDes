@@ -17,38 +17,45 @@ class UserProfileService:
         self.engine = engine or UserProfileEngine()
         self.event_bus_service = event_bus_service or EventBusService()
 
-    def get_profile(self, user_id: str):
-        profile = self.repository.get_or_create(user_id)
+    async def get_profile(self, user_id: str):
+        profile = await self.repository.get_or_create(user_id)
         return serialize_user_profile(profile)
 
-    def apply_preferences(self, payload: dict):
-        profile = self.get_profile(payload["user_id"])
+    async def apply_preferences(self, payload: dict):
+        # SCALE-008: get_or_create_for_update() locks the row (DB-backed)
+        # for the rest of this request's transaction -- a concurrent
+        # request for the SAME user_id (whether apply_preferences or
+        # merge_feedback) blocks until this one's upsert() commits, then
+        # re-reads the merged result instead of racing off a stale
+        # snapshot. Without this, a plain get()-then-upsert() would still
+        # lose updates under concurrency even against a real DB.
+        profile = await self.repository.get_or_create_for_update(payload["user_id"])
         merged = self.engine.apply_manual_preferences(
-            profile=profile,
+            profile=serialize_user_profile(profile),
             preferences=payload,
         )
-        saved = self.repository.upsert(UserProfile(**self._model_fields(merged)))
+        saved = await self.repository.upsert(UserProfile(**self._model_fields(merged)))
         serialized = serialize_user_profile(saved)
         self._publish("user_profile.preferences_applied", serialized)
         return serialized
 
-    def merge_feedback(self, payload: dict):
-        profile = self.get_profile(payload["user_id"])
+    async def merge_feedback(self, payload: dict):
+        profile = await self.repository.get_or_create_for_update(payload["user_id"])
         merged = self.engine.merge_feedback_summary(
-            profile=profile,
+            profile=serialize_user_profile(profile),
             feedback_summary=payload.get("feedback_summary", {}),
         )
-        saved = self.repository.upsert(UserProfile(**self._model_fields(merged)))
+        saved = await self.repository.upsert(UserProfile(**self._model_fields(merged)))
         serialized = serialize_user_profile(saved)
         self._publish("user_profile.feedback_merged", serialized)
         return serialized
 
-    def recommendation_context(self, user_id: str):
-        profile = self.get_profile(user_id)
+    async def recommendation_context(self, user_id: str):
+        profile = await self.get_profile(user_id)
         return self.engine.recommendation_context(profile=profile)
 
-    def clear(self):
-        self.repository.clear()
+    async def clear(self):
+        await self.repository.clear()
         return {"cleared": True}
 
     def _model_fields(self, data: dict):

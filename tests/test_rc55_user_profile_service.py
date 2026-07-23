@@ -2,11 +2,11 @@ from app.domains.events.event_repository_factory import reset_event_repository
 from app.domains.user_profiles.user_profile_service import UserProfileService
 
 
-def test_user_profile_service_applies_preferences_and_emits_event():
+async def test_user_profile_service_applies_preferences_and_emits_event():
     reset_event_repository()
     service = UserProfileService()
 
-    profile = service.apply_preferences(
+    profile = await service.apply_preferences(
         {
             "user_id": "user-1",
             "preferred_marketplaces": ["saturn"],
@@ -24,10 +24,10 @@ def test_user_profile_service_applies_preferences_and_emits_event():
     assert events
 
 
-def test_user_profile_service_merges_feedback():
+async def test_user_profile_service_merges_feedback():
     service = UserProfileService()
 
-    profile = service.merge_feedback(
+    profile = await service.merge_feedback(
         {
             "user_id": "user-1",
             "feedback_summary": {

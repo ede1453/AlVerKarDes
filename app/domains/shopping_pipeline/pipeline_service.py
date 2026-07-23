@@ -64,7 +64,7 @@ class ShoppingPipelineService:
             offers=search.get("offers", []),
         )
 
-        recommendation = self.recommendation_service.recommend(
+        recommendation = await self.recommendation_service.recommend(
             {
                 "user_id": user_id,
                 "query": query,
@@ -74,7 +74,8 @@ class ShoppingPipelineService:
                 "deal_detection": payload.get("deal_detection"),
                 "discount_intelligence": payload.get("discount_intelligence"),
                 "price_prediction": payload.get("price_prediction"),
-            }
+            },
+            db,
         )
 
         top = recommendation.get("items", [None])[0] if recommendation.get("items") else None
