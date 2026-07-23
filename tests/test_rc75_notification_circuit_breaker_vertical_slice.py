@@ -3,11 +3,16 @@ from fastapi.testclient import TestClient
 from app.main import app
 from tests.auth_test_helpers import internal_service_headers, operator_headers
 
-# SCALE-007 Part 1: shared/persistent DB -- no /clear. The threshold is
-# computed relative to the baseline dead_letter_count (from /metrics)
-# instead of a fixed absolute value, so the "opens after N NEW dead
-# letters" business rule stays provable regardless of leftover dead
-# letters from other tests/runs.
+# SCALE-007 Part 1: shared/persistent DB -- no /clear. dead_letter_count is
+# a GLOBAL gauge that is NOT strictly monotonic (another concurrently-
+# running test's replay_dead_letter() call moves an item back to PENDING,
+# decreasing it) -- a threshold computed from a baseline read long before
+# the final check (spanning our own 3-dead-letter creation, itself several
+# HTTP round-trips) left a wide window for that to happen, observed flaky
+# under `pytest -n auto`. Re-measuring the threshold as late as possible
+# (immediately before the status check, right after our own dead letters
+# exist) shrinks that window to two back-to-back calls instead of the
+# whole test body.
 
 
 def _make_dead_letter(client: TestClient, index: int):
@@ -48,14 +53,15 @@ def test_rc75_vertical_slice_circuit_breaker_opens_after_dlq_spike():
     with TestClient(app) as client:
         headers = operator_headers(client)
 
-        baseline_dead_letter_count = client.get(
-            "/api/v1/notification-outbox/metrics", headers=headers
-        ).json()["dead_letter_count"]
-
         for index in range(3):
             _make_dead_letter(client, index)
 
-        threshold = baseline_dead_letter_count + 3
+        # Measured as late as possible (see module docstring) -- this is
+        # guaranteed to include our own 3 dead letters, whatever else is
+        # concurrently true globally.
+        threshold = client.get(
+            "/api/v1/notification-outbox/metrics", headers=headers
+        ).json()["dead_letter_count"]
 
         status = client.get(
             "/api/v1/notification-outbox/circuit-breaker/status",
@@ -64,12 +70,6 @@ def test_rc75_vertical_slice_circuit_breaker_opens_after_dlq_spike():
         ).json()
 
         assert status["status"] == "OPEN"
-        # dead_letter_count is monotonically increasing and GLOBAL -- other
-        # concurrently-running tests may add their own dead letters between
-        # our baseline read and this one, so it can be >= our +3
-        # contribution, not exactly threshold (observed flaky under
-        # `pytest -n auto`). It can never be LESS than threshold, though,
-        # since our own 3 dead letters are unconditionally included.
         assert status["failure_count"] >= threshold
 
         decision = client.get(

@@ -79,9 +79,11 @@ def clear_reliability(
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
-    global _service
-    _service = StorageReliabilityGovernanceService()
-    return {"cleared": True}
+    # SCALE-009: the worker-lease now lives in a store SHARED across
+    # StorageReliabilityGovernanceService instances (Redis or the in-memory
+    # singleton) -- reassigning `_service` to a fresh instance no longer
+    # releases it, so `clear()` explicitly force-releases whoever holds it.
+    return _service.clear()
 
 
 @router.post("/worker-leases")
@@ -100,11 +102,13 @@ def acquire_lease(
 )
 def heartbeat(
     worker_id: str,
+    lease_seconds: int = 60,
     # AUTH-006 Parça 3 (ADR-005): OPERATOR+ gerektirir.
     current_user=Depends(require_role(UserRole.OPERATOR)),
 ):
     return _service.heartbeat_worker(
-        worker_id=worker_id
+        worker_id=worker_id,
+        lease_seconds=lease_seconds,
     )
 
 

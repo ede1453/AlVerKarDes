@@ -5,6 +5,16 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.domains.leader_election.leader_election_store_factory import get_leader_election_store
+
+# SCALE-009: single fixed lock key -- mirrors notification_outbox's
+# _LEADER_LOCK_KEY (SCALE-002). This service manages exactly one shared
+# "who is the active storage-reliability worker" role; different worker_id
+# values are candidates competing for THIS one lease, not independent locks.
+_STORAGE_RELIABILITY_LOCK_KEY = "storage_reliability_worker"
+
+DEFAULT_LEASE_SECONDS = 60
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -15,19 +25,29 @@ def now_iso() -> str:
 
 
 class StorageReliabilityGovernanceService:
-    def __init__(self) -> None:
-        self._worker_leases: dict[str, dict[str, Any]] = {}
+    def __init__(self, leader_store=None) -> None:
         self._backup_catalog: dict[str, dict[str, Any]] = {}
         self._restore_approvals: dict[str, dict[str, Any]] = {}
         self._dr_plans: dict[str, dict[str, Any]] = {}
         self._slo_samples: list[dict[str, Any]] = []
+        # SCALE-009: worker-lease state moved to the SAME env-driven
+        # leader-election store SCALE-002 built for notification_outbox
+        # (Redis-backed in prod, in-memory fallback for tests/local) --
+        # get_leader_election_store() is the SCALE-001 factory pattern,
+        # reused as-is (no new store code written, per Organik Gelişim
+        # Kanunu -- SCALE-002 already solved this exact class of problem).
+        # Before this, `_worker_leases` was a plain process-local dict:
+        # two different app worker PROCESSES each believing they'd won the
+        # lease for the same worker_id was a real, unfixed split-brain risk
+        # -- the same class of bug SCALE-002 fixed for notification_outbox.
+        self._leader_store = leader_store or get_leader_election_store()
 
     # RC186 — Worker lease and heartbeat
     def acquire_worker_lease(
         self,
         *,
         worker_id: str,
-        lease_seconds: int = 60,
+        lease_seconds: int = DEFAULT_LEASE_SECONDS,
     ) -> dict[str, Any]:
         if lease_seconds <= 0:
             return {
@@ -36,35 +56,32 @@ class StorageReliabilityGovernanceService:
                 "lease": None,
             }
 
-        existing = self._worker_leases.get(worker_id)
-        current = now_utc()
+        result = self._leader_store.acquire(
+            key=_STORAGE_RELIABILITY_LOCK_KEY,
+            worker_id=worker_id,
+            lease_seconds=lease_seconds,
+        )
 
-        if existing and datetime.fromisoformat(
-            existing["expires_at"]
-        ) > current:
+        if not result["acquired"]:
             return {
                 "acquired": False,
                 "reason": "LEASE_ALREADY_ACTIVE",
-                "lease": deepcopy(existing),
+                "lease": {
+                    "worker_id": result["leader_id"],
+                    "status": "ACTIVE",
+                    "expires_at": result["lease_expires_at"],
+                },
             }
-
-        lease = {
-            "lease_id": str(uuid4()),
-            "worker_id": worker_id,
-            "status": "ACTIVE",
-            "acquired_at": current.isoformat(),
-            "last_heartbeat_at": current.isoformat(),
-            "expires_at": (
-                current + timedelta(seconds=lease_seconds)
-            ).isoformat(),
-            "lease_seconds": lease_seconds,
-        }
-        self._worker_leases[worker_id] = lease
 
         return {
             "acquired": True,
             "reason": "LEASE_ACQUIRED",
-            "lease": deepcopy(lease),
+            "lease": {
+                "worker_id": worker_id,
+                "status": "ACTIVE",
+                "expires_at": result["lease_expires_at"],
+                "lease_seconds": lease_seconds,
+            },
             "metadata": {
                 "lease_version": "storage_worker_lease_v1"
             },
@@ -74,40 +91,43 @@ class StorageReliabilityGovernanceService:
         self,
         *,
         worker_id: str,
+        lease_seconds: int = DEFAULT_LEASE_SECONDS,
     ) -> dict[str, Any]:
-        lease = self._worker_leases.get(worker_id)
+        if lease_seconds <= 0:
+            return {
+                "updated": False,
+                "reason": "INVALID_LEASE_DURATION",
+                "lease": None,
+            }
 
-        if lease is None:
+        result = self._leader_store.renew(
+            key=_STORAGE_RELIABILITY_LOCK_KEY,
+            worker_id=worker_id,
+            lease_seconds=lease_seconds,
+        )
+
+        if not result["renewed"]:
+            # A TTL-backed lease that expired is simply gone from the store
+            # (Redis deletes it) -- there's no way to distinguish "never
+            # existed" from "existed and expired" the way the old in-memory
+            # version's separate EXPIRED status could, so both collapse to
+            # LEASE_NOT_FOUND. A worker holding a lease that ANOTHER worker
+            # has since (legitimately) taken over gets the same reason too.
             return {
                 "updated": False,
                 "reason": "LEASE_NOT_FOUND",
                 "lease": None,
             }
 
-        current = now_utc()
-
-        if datetime.fromisoformat(
-            lease["expires_at"]
-        ) <= current:
-            lease["status"] = "EXPIRED"
-            return {
-                "updated": False,
-                "reason": "LEASE_EXPIRED",
-                "lease": deepcopy(lease),
-            }
-
-        lease["last_heartbeat_at"] = current.isoformat()
-        lease["expires_at"] = (
-            current
-            + timedelta(
-                seconds=lease["lease_seconds"]
-            )
-        ).isoformat()
-
         return {
             "updated": True,
             "reason": "HEARTBEAT_RECORDED",
-            "lease": deepcopy(lease),
+            "lease": {
+                "worker_id": worker_id,
+                "status": "ACTIVE",
+                "expires_at": result["lease_expires_at"],
+                "lease_seconds": lease_seconds,
+            },
         }
 
     def release_worker_lease(
@@ -115,20 +135,24 @@ class StorageReliabilityGovernanceService:
         *,
         worker_id: str,
     ) -> dict[str, Any]:
-        lease = self._worker_leases.get(worker_id)
+        result = self._leader_store.release(
+            key=_STORAGE_RELIABILITY_LOCK_KEY,
+            worker_id=worker_id,
+        )
 
-        if lease is None:
+        if not result["released"]:
             return {
                 "released": False,
                 "reason": "LEASE_NOT_FOUND",
             }
 
-        lease["status"] = "RELEASED"
-        lease["released_at"] = now_iso()
-
         return {
             "released": True,
-            "lease": deepcopy(lease),
+            "lease": {
+                "worker_id": worker_id,
+                "status": "RELEASED",
+                "released_at": now_iso(),
+            },
         }
 
     # RC187 — Backup retention policy
@@ -453,3 +477,26 @@ class StorageReliabilityGovernanceService:
         return deepcopy(
             self._slo_samples[-1]
         )
+
+    def clear(self) -> dict[str, Any]:
+        # SCALE-009: the leader-election lease lives in the SHARED store
+        # (Redis or the in-memory singleton), not on this instance -- unlike
+        # the dicts below, simply constructing a fresh
+        # StorageReliabilityGovernanceService() would NOT release it
+        # (both the old and new instance point at the same underlying
+        # store). Force-release whoever currently holds it so "clear" is a
+        # genuine full reset, not just a partial one that silently leaves a
+        # lease behind for the next caller to be blocked by.
+        current = self._leader_store.status(_STORAGE_RELIABILITY_LOCK_KEY)
+        if current.get("leader_id") is not None:
+            self._leader_store.release(
+                key=_STORAGE_RELIABILITY_LOCK_KEY,
+                worker_id=current["leader_id"],
+            )
+
+        self._backup_catalog = {}
+        self._restore_approvals = {}
+        self._dr_plans = {}
+        self._slo_samples = []
+
+        return {"cleared": True}
