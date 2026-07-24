@@ -38,6 +38,12 @@ USER aici
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+# LAUNCH-001: must hit "localhost", not "127.0.0.1" -- TrustedHostMiddleware
+# (HARDEN-003) only allows TRUSTED_HOSTS's configured host(s), and a request
+# with Host: 127.0.0.1 gets a genuine 400 Bad Request rejection from the app
+# itself when only "localhost" is trusted (found live: this exact mismatch
+# made the container report "unhealthy" via `docker ps` even though the app
+# was actually up and /health/ready were both fine when reached correctly).
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
